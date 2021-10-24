@@ -12,13 +12,12 @@ WordPress Must Use plugin to unload unnecessary plugins on demand.
 Use the oik-unloader plugin to unload unnecessary plugins on demand.
 
 Many websites have lots of plugins activated because the functionality is sometimes needed.
-But quite a few of these plugins think they're needed all the time
-and do a lot of processing for each incoming request
+But quite a few of these plugins think they're needed all the time,
+they do a lot of processing for each incoming request,
 only to find that there's no need for the work that they've done.
 
 These slow the server side processing of the site. This can increase time to first byte.
 The plugins can also slow the front end of the site; delivering scripts, CSS and even HTML and images that are not actually needed.
-
 
 Dynamically unloading a subset of plugins for certain requests could improve the overall performance of the site.
 
@@ -27,14 +26,13 @@ Dynamically unloading a subset of plugins for certain requests could improve the
 1. Upload the contents of the oik-unloader plugin to the `/wp-content/plugins/oik-unloader' directory
 1. Activate the oik-unloader plugin through the 'Plugins' menu in WordPress
 1. Visit the oik-unloader admin page
-1. Click on the link to activate/update the Must Use ( MU ) plugin
 1. Use the admin interface to select which plugins to deactivate for selected URLs
-1. If required provide an oik-unloader-extras.csv file in the mu-plugins folder
+1. Click on the link to activate/update the Must Use ( MU ) plugin
+1. Disable the MU logic using the Deactivate link
 
 Note: In a WordPress Multi Site installation
 - There will only be one version of the Must Use plugin ( oik-unloader-mu.php )
 - There will be multiple index and component dependencies files; one of each per site.
-- There may be one oik-unloader-extras.csv file.
 
 
 == Frequently Asked Questions ==
@@ -45,12 +43,14 @@ It dynamically removes from the plugins list the unwanted plugins.
 
 = Which plugins can I deactivate? =
 
-For certain URLs you should be able to deactivate a whole host of plugins that aren't actually required
-for the front end. You may fond that some plugins are extremely well behaved and it won't make the slightest difference if they're left activated.
+For certain URLs you should be able to deactivate a whole host of plugins that aren't actually required for the front end. 
+You may find that some plugins are extremely well behaved and it won't make the slightest difference if they're left activated.
 
 
 == Screenshots ==
-1. None
+1. oik-loader admin page - plugins
+2. oik-loader admin page - oik-loader-mu not activated
+3. oik-loader admin page - oik-loader-mu activated
 
 == Upgrade Notice ==
 = 0.0.0 =
@@ -58,13 +58,13 @@ Prototype version developed as part of a performance improvement project.
 
 == Changelog ==
 = 0.0.0 =
-* Added: Brand new plugin. includes/oik-unloader-mu.php will be manually installed in mu-plugins.
+* Added: Brand new plugin. includes/oik-unloader-mu.php will only be installed in mu-plugins if the folder exists.
 * Tested: With WordPress 5.8.1 and WordPress Multi Site
 * Tested: With Gutenberg 11.7 and different variations
 * Tested: With PHP 8.0
 
 == Further reading ==
-See also [oik-loader](https://github.com/bobbingwide/oik-loader) which does the reverse.
+See also [oik-loader](https://github.com/bobbingwide/oik-loader) which adds plugins to the list of plugins to activate.
 
 If you want to read more about oik plugins and themes then please visit
 [oik-plugins](https://www.oik-plugins.com/)
