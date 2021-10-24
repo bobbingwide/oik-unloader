@@ -127,11 +127,24 @@ function oik_unloader_build_index($lines)
             $url = array_shift($csv);
             $ID = array_shift($csv);
             $index[$url] = $csv;
-            $index[$ID] = $csv;
+            //$index[$ID] = $csv;
+            oik_unloader_map_id( $url, $ID );
         }
     }
     //print_r( $index );
     return $index;
+}
+
+function oik_unloader_map_id( $url, $id=null ) {
+    static $url_id_map = [];
+    if ( null !== $id ) {
+        $url_id_map[ $url ] = $id;
+        $url_id_map[ $id ] = $url;
+    }
+    if ( isset( $url_id_map[ $url ] ) ) {
+        return $url_id_map[ $url ];
+    }
+    return null;
 }
 
 /**
@@ -165,7 +178,7 @@ function oik_unloader_mu_query_plugins($index, $page)
 function oik_unloader_option_active_plugins($active_plugins, $option)
 {
     //print_r( $active_plugins );
-    bw_backtrace();
+    //bw_backtrace();
     $unload_plugins = oik_unloader_unload_plugins();
     // build plugin dependency list
     if ($unload_plugins) {
