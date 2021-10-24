@@ -36,8 +36,10 @@ function oik_unloader_do_page()
 }
 
 /**
+ * Checks if the MU plugin is activated.
+ *
  * We can't rely on the presence of the oik_unloader_build_index function since this
- * will still be loaded after uninstallation.
+ * is used by the admin interface when the MU plugin is not installed.
  * We have to check if the file exists.
  * @return bool
  */
@@ -52,6 +54,12 @@ function oik_unloader_query_loader_mu()
     return $installed;
 }
 
+/**
+ * Checks if the logic is available.
+ *
+ * @return bool
+ */
+
 function oik_unloader_query_loader_active()
 {
     $active = function_exists("oik_unloader_mu_build_index");
@@ -62,7 +70,6 @@ function oik_unloader_query_loader_active()
 function oik_unloader_oik_menu_box()
 {
     oik_unloader_mu_maybe_activate();
-
     $oik_unloader_mu_installed = oik_unloader_query_loader_mu();
     if ($oik_unloader_mu_installed) {
         p("oik-unloader-mu is installed");
@@ -73,29 +80,6 @@ function oik_unloader_oik_menu_box()
     br();
     alink(null, admin_url("admin.php?page=oik-unloader&amp;mu=activate"), __("Click to activate/update MU", "oik-unloader"));
 
-
-    $oik_unloader_mu_active = oik_unloader_query_loader_active();
-    if ($oik_unloader_mu_active) {
-        p("oik-unloader-mu is active");
-
-    } else {
-        p("oik-unloader-mu is not loaded");
-    }
-
-    if ($oik_unloader_mu_active) {
-        $index = oik_unloader_mu_build_index();
-        if (null === $index) {
-            p("Index not built or empty");
-        } else {
-            p( count( $index ));
-            //oik_unloader_report_index($index);
-            //oik_unloader_display_index( $index );
-        }
-        //br();
-        //alink(null, admin_url("admin.php?page=oik-unloader&amp;mu=rebuild"), __("Click to rebuild index", "oik-unloader"));
-        //br();
-        //alink(null, admin_url("admin.php?page=oik-unloader&amp;mu=rebuild-dependencies"), __("Click to rebuild plugin dependencies", "oik-unloader"));
-    }
 }
 
 /**
@@ -104,8 +88,7 @@ function oik_unloader_oik_menu_box()
  * MU plugins are activated as soon as they are installed.
  * Obviously they don't become active until the next page load.
  */
-function oik_unloader_mu_maybe_activate()
-{
+function oik_unloader_mu_maybe_activate() {
     $mu_parm = bw_array_get($_REQUEST, "mu", null);
     switch ($mu_parm) {
         case "activate":
@@ -113,13 +96,6 @@ function oik_unloader_mu_maybe_activate()
             break;
         case "deactivate":
             oik_unloader_activate_mu(false);
-            break;
-
-        case "rebuild":
-            //oik_unloader_rebuild_index();
-            break;
-        case "rebuild-dependencies":
-            //oik_unloader_rebuild_dependencies();
             break;
         default:
             break;
@@ -171,55 +147,3 @@ function oik_unloader_activate_mu($activate = true)
         }
     }
 }
-
-/**
- * Displays the index
- * Note: There are two entries per post. One for the permalink, the other for the post ID.
- *
- * @param $index
- */
-
-function oik_unloader_report_index($index)
-{
-    oik_require("includes/oik-unloader-map.php", "oik-unloader");
-    p("Index entries: " . count($index));
-    $csvs = oik_unloader_load_map();
-    $expected = count($csvs) * 2;
-    p("Expected entries: " . $expected);
-
-}
-
-function oik_unloader_display_index($index)
-{
-
-
-    foreach ($index as $key => $plugin) {
-        e($key);
-        e($plugin);
-        br();
-    }
-}
-
-function oik_unloader_rebuild_index()
-{
-    oik_unloader_run_oik-unloader();
-}
-
-function oik_unloader_plugins_box()
-{
-    oik_require("includes/oik-unloader-plugins.php", "oik-unloader");
-    $csvs = [];
-    $csvs = oik_unloader_map_oik_plugins_CPT($csvs);
-
-    oik_unloader_display_oik_plugins($csvs);
-}
-
-function oik_unloader_rebuild_dependencies()
-{
-    oik_require("includes/oik-unloader-plugins.php", "oik-unloader");
-    oik_unloader_lazy_rebuild_dependencies();
-
-}
-
-
-
