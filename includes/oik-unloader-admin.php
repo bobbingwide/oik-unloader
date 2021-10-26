@@ -102,21 +102,36 @@ function oik_unloader_mu_maybe_activate() {
     }
 }
 
-/**
- * Returns fully qualified name for the oik-unloader-mu target file
- *
- * @return string|null
- */
-function oik_unloader_target_file()
-{
+function oik_unloader_target_folder() {
     if (defined('WPMU_PLUGIN_DIR')) {
         $target = WPMU_PLUGIN_DIR;
     } else {
         $target = ABSPATH . '/wp-content/mu-plugins';
     }
     bw_trace2($target, "target dir", true, BW_TRACE_DEBUG);
-    if (is_dir($target)) {
-        $target .= "/oik-unloader-mu.php";
+    if ( !is_dir( $target) ) {
+        wp_mkdir_p( $target );
+    }
+    if ( !is_dir($target)) {
+        $target = null;
+    }
+    return $target;
+
+}
+
+/**
+ * Returns fully qualified name for a file in the mu-plugins folder
+ *
+ * It may need to create the folder.
+ *
+ * @return string|null
+ */
+function oik_unloader_target_file( $file='/oik-unloader-mu.php')
+{
+    $target = oik_unloader_target_folder();
+
+    if ( $target) {
+        $target .= $file;
     } else {
         // Do we need to make this ourselves?
         bw_trace2($target, "Not a dir?", true, BW_TRACE_ERROR);
