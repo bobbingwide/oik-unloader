@@ -5,7 +5,7 @@
 * Tags: oik, plugin, unloader
 * Requires at least: 5.8.1
 * Tested up to: 5.8.1
-* Stable tag: 0.0.0
+* Stable tag: 0.0.1
 
 WordPress Must Use plugin to unload unnecessary plugins on demand.
 
@@ -13,15 +13,17 @@ WordPress Must Use plugin to unload unnecessary plugins on demand.
 Use the oik-unloader plugin to unload unnecessary plugins on demand.
 
 Many websites have lots of plugins activated because the functionality is sometimes needed.
-But quite a few of these plugins think they're needed all the time,
-they do a lot of processing for each incoming request,
-only to find that there's no need for the work that they've done.
+But quite a few of these plugins:
+- think they're needed all the time,
+- do a lot of processing for each incoming request,
+- only to find that there was no need for the work that they'd done.
 
-These slow the server side processing of the site. This can increase time to first byte.
+These slow the server side processing of the site.
+This can increase the server response time; time to first byte.
 The plugins can also slow the front end of the site; delivering scripts, CSS and even HTML and images that are not actually needed.
 
 Dynamically unloading a subset of plugins for certain requests could improve the overall performance of the site.
-
+This could help improve the Core Web Vitals which may lead to better rankings in Search Engine Results Pages ( SERPs ).
 
 ## Installation 
 1. Upload the contents of the oik-unloader plugin to the `/wp-content/plugins/oik-unloader' directory
@@ -33,20 +35,40 @@ Dynamically unloading a subset of plugins for certain requests could improve the
 
 * Note: In a WordPress Multi Site installation
 - There will only be one version of the Must Use plugin ( oik-unloader-mu.php )
-- There will be multiple index and component dependencies files; one of each per site.
+- There will be multiple unloader files ; one per site.
 
 
 ## Frequently Asked Questions 
 
 # What is this plugin for? 
-It helps to reduce the number of activated plugins in your website.
-It dynamically removes from the plugins list the unwanted plugins.
+Performance tweaking.
+
+- It helps to reduce the number of activated plugins for a particular request.
+- It dynamically removes the unwanted plugins from the list of plugins to be activated.
+- The plugin temporarily deactivates plugins for the specific URL.
+- It doesn't unload them, it prevents the plugins from being loaded.
 
 # Which plugins can I deactivate? 
 
 For certain URLs you should be able to deactivate a whole host of plugins that aren't actually required for the front end.
 You may find that some plugins are extremely well behaved and it won't make the slightest difference if they're left activated.
 
+# Why deactivate rather than activate? 
+
+By targetting specific URLs you can deactivate plugins that you're certain are not needed.
+For example, you may have a number of posts that display charts.
+For these you will need to ensure that the chart plugin is activated.
+For any other post, the plugin that displays the charts doesn't need to be activated.
+If it improves the performance, then you may consider deactivating the chart plugin for these other posts.
+The tweaking is intended to get the best performance for specific URLs.
+Concentrate on the most visited pages first and deactivate only those plugins that you know you can safely deactivate.
+
+
+It's primarily the front end experience that we want to improve.
+
+When using the WordPress admin interface you'll expect each of the plugins to operate correctly.
+Therefore you would expect the plugins to be activated.
+The REST API and AJAX requests should also produce the expected results.
 
 ## Screenshots 
 1. oik-loader admin page - plugins
@@ -54,14 +76,22 @@ You may find that some plugins are extremely well behaved and it won't make the 
 3. oik-loader admin page - oik-loader-mu activated
 
 ## Upgrade Notice 
+# 0.0.1 
+Upgrade plugin selection using checkboxes.
+
 # 0.0.0 
 Prototype version developed as part of a performance improvement project.
 
 ## Changelog 
+# 0.0.1 
+* Changed: Plugin selection list implemented using checkboxes
+* Changed: Create mu-plugins folder if required
+* Changed: Respect WPMU_PLUIN_DIR value locating mu-plugins folder
+
 # 0.0.0 
 * Added: Brand new plugin. includes/oik-unloader-mu.php will only be installed in mu-plugins if the folder exists.
-* Tested: With WordPress 5.8.1 and WordPress Multi Site
-* Tested: With Gutenberg 11.7 and different variations
+* Tested: With WordPress 5.8.1
+* Tested: With Gutenberg 11.7
 * Tested: With PHP 8.0
 
 ## Further reading 
