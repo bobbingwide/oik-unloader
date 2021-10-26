@@ -87,15 +87,22 @@ function oik_unloader_mu_build_index()
 //$oik_unloader_csv = dirname( __FILE__  ) . "/oik-loader." . $blog_id . ".csv";
 
 
-function oik_unloader_csv_file($file = 'oik-unloader')
+function oik_unloader_csv_file( $file = 'oik-unloader')
 {
     global $blog_id;
-    $csv_file = WPMU_PLUGIN_DIR;
+    if (defined('WPMU_PLUGIN_DIR')) {
+        $csv_file = WPMU_PLUGIN_DIR;
+    } else {
+        $csv_file = ABSPATH . '/wp-content/mu-plugins';
+    }
     $csv_file .= '/';
     $csv_file .= $file;
     $csv_file .= '.';
     $csv_file .= $blog_id;
     $csv_file .= '.csv';
+
+    //$csv_file = oik_unloader_target_file( $csv_file );
+
     return $csv_file;
 }
 
