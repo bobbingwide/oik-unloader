@@ -98,13 +98,14 @@ class oik_unloader_admin
     /**
      * Displays the report of plugins to deactivate by URL
      */
-
     function report() {
-        $csv_file = oik_unloader_csv_file();
-        BW_::p( $csv_file );
-        $this->print_index( $this->index );
-        $this->edit_URL_mapping( );
+        if ( $this->index ) {
+            $csv_file = oik_unloader_csv_file();
+            BW_::p($csv_file);
+            $this->print_index($this->index);
 
+        }
+        $this->edit_URL_mapping();
     }
 
     function print_index( $index ) {
@@ -120,16 +121,13 @@ class oik_unloader_admin
     function edit_URL_mapping() {
         $this->set_url();
         bw_form();
-        //stag( 'table', 'widefat');
-        //p( $url );
-
-        //p( implode( ',', $plugins ));
         $this->url_select_list();
         $this->choose_url_button();
         br();
-        //$plugins = $this->get_plugins_for_url();
-        $this->plugin_select_list();
-        e( isubmit('update', 'Update plugins to deactivate'), null, 'button-secondary' );
+        $this->plugin_checkbox_list();
+        if ( $this->index ) {
+            e(isubmit('update', 'Update plugins to deactivate'), null, 'button-secondary');
+        }
         $this->add_url_button();
         //etag( 'table');
        ;
@@ -151,7 +149,10 @@ class oik_unloader_admin
     }
 
     function get_first_url_in_index() {
-        $first = array_key_first( $this->index );
+        $first = null;
+        if ( $this->index ) {
+            $first = array_key_first($this->index);
+        }
         return $first;
     }
 
@@ -161,9 +162,10 @@ class oik_unloader_admin
     }
 
     function choose_url_button() {
-        e( isubmit( 'chooseurl', "Choose URL to update"), null, 'button-primary');
-        e( isubmit( 'deleteurl', "Delete URL"), null, 'button-secondary');
-
+        if ( $this->index ) {
+            e(isubmit('chooseurl', "Choose URL to update"), null, 'button-primary');
+            e(isubmit('deleteurl', "Delete URL"), null, 'button-secondary');
+        }
     }
 
     function add_url_button() {
@@ -174,7 +176,10 @@ class oik_unloader_admin
 
     function get_plugins_for_url() {
         $url = $this->get_url();
-        return $this->index[ $url ];
+        if ( isset( $this->index[ $url ])) {
+            return $this->index[$url];
+        }
+        return [];
     }
 
     /**
@@ -189,8 +194,10 @@ class oik_unloader_admin
     }
 
     function url_select_list( ) {
-        $args = array( '#options' => bw_assoc( array_keys( $this->index ) ) );
-        BW_::bw_select( '_url', "URL", $this->get_url(), $args );
+        if ( $this->index ) {
+            $args = array('#options' => bw_assoc(array_keys($this->index)));
+            BW_::bw_select('_url', "URL", $this->get_url(), $args);
+        }
     }
 
     function plugin_select_list() {
@@ -198,12 +205,35 @@ class oik_unloader_admin
         $args = array('#options' => $options, '#multiple' => count( $options ) );
         BW_::bw_select('_plugins', 'Plugins', $this->get_plugins_for_url(), $args);
 
+
+    }
+    function plugin_checkbox_list() {
+    	$options = $this->get_active_plugins();
+    	$selected = $this->unkeyed_to_checkbox( $this->get_plugins_for_url() );
+    	stag( 'table');
+    	foreach ( $options as $plugin ) {
+		    bw_checkbox_arr( '_plugins', $plugin, $selected, $plugin );
+	    }
+    	etag( 'table');
+    }
+
+    function unkeyed_to_checkbox( $unkeyed ) {
+    	$checkbox = [];
+    	foreach ( $unkeyed as $key ) {
+    		$checkbox[ $key ] = 'on';
+	    }
+    	return $checkbox;
     }
 
     function get_selected_plugins() {
-        $plugins = bw_array_get( $_REQUEST, '_plugins', null );
-        //print_r( $plugins );
-        return $plugins;
+        $plugins = bw_array_get( $_REQUEST, '_plugins', [] );
+        $selected = [];
+        foreach ( $plugins as $key => $value ) {
+        	if ( 'on' === $value ) {
+		        $selected[]=$key;
+	        }
+        }
+        return $selected;
     }
 
     function write_csv() {
@@ -211,9 +241,14 @@ class oik_unloader_admin
         stag( 'pre');
         e( $csv );
         etag( 'pre');
-        $csv_file = oik_unloader_csv_file();
-        p( "Writing CSV file:" . $csv_file );
-        file_put_contents( $csv_file, $csv );
+        $target_folder = oik_unloader_target_folder();
+        if ( $target_folder ) {
+            $csv_file = oik_unloader_csv_file();
+            p("Writing CSV file:" . $csv_file);
+            file_put_contents($csv_file, $csv);
+        } else {
+            p("Error: Cannot create/access mu-plugins folder");
+        }
     }
 
     function reconstruct_csv() {
