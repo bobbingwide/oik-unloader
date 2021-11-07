@@ -4,7 +4,7 @@ Donate link: https://www.oik-plugins.com/oik/oik-donate/
 Tags: oik, plugin, unloader
 Requires at least: 5.8.1
 Tested up to: 5.8.1
-Stable tag: 0.0.1
+Stable tag: 0.1.0
 
 WordPress Must Use plugin to unload unnecessary plugins on demand.
 
@@ -34,7 +34,7 @@ This could help improve the Core Web Vitals which may lead to better rankings in
 
 Note: In a WordPress Multi Site installation
 - There will only be one version of the Must Use plugin ( oik-unloader-mu.php )
-- There will be multiple unloader files ; one per site.
+- There will be multiple unloader files; one per site.
 
 
 == Frequently Asked Questions ==
@@ -75,6 +75,9 @@ The REST API and AJAX requests should also produce the expected results.
 3. oik-loader admin page - oik-loader-mu activated
 
 == Upgrade Notice ==
+= 0.1.0 = 
+Upgrade for WordPress Multi Site support.
+
 = 0.0.1 =
 Upgrade plugin selection using checkboxes.
 
@@ -82,15 +85,18 @@ Upgrade plugin selection using checkboxes.
 Prototype version developed as part of a performance improvement project.
 
 == Changelog ==
+= 0.1.0 = 
+* Changed: Support deactivation of Network Activated plugins in WordPress Multi Site #4
+
 = 0.0.1 =
-* Changed: Plugin selection list implemented using checkboxes 
+* Changed: Plugin selection list implemented using checkboxes
 * Changed: Create mu-plugins folder if required
-* Changed: Respect WPMU_PLUIN_DIR value locating mu-plugins folder
+* Changed: Respect WPMU_PLUGIN_DIR value locating mu-plugins folder
 
 = 0.0.0 =
 * Added: Brand new plugin. includes/oik-unloader-mu.php will only be installed in mu-plugins if the folder exists.
 * Tested: With WordPress 5.8.1
-* Tested: With Gutenberg 11.7
+* Tested: With Gutenberg 11.7.0
 * Tested: With PHP 8.0
 
 == Further reading ==

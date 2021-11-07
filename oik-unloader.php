@@ -3,7 +3,7 @@
 Plugin Name: oik-unloader
 Plugin URI: https://www.oik-plugins.com/oik-plugins/oik-unloader
 Description: WordPress plugin to dynamically unload unnecessary plugins on demand
-Version: 0.0.1
+Version: 0.1.0
 Author: bobbingwide
 Author URI: https://bobbingwide.com/about-bobbing-wide/
 Text Domain: oik-unloader
@@ -61,7 +61,7 @@ function oik_unloader_oik_admin_menu() {
 
 
 /**
- * Implements 'plugins_loaded' action for oik-blocks
+ * Implements 'plugins_loaded' action for oik-unloader
  *
  * Prepares use of shared libraries if this has not already been done.
  */
