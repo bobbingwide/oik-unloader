@@ -57,7 +57,8 @@ function oik_unloader_mu_loaded()
         if (null !== $plugins) {
             //$plugins = oik_unloader_plugin_dependencies($plugins);
             oik_unloader_unload_plugins($plugins);
-            add_filter("option_active_plugins", "oik_unloader_option_active_plugins", 10, 2);
+            add_filter( "option_active_plugins", "oik_unloader_option_active_plugins", 10, 2);
+            add_filter( "site_option_active_sitewide_plugins", "oik_unloader_site_option_active_sitewide_plugins", 10, 3 );
         }
 
     }
@@ -200,6 +201,23 @@ function oik_unloader_option_active_plugins($active_plugins, $option)
     }
     //print_r( $active_plugins );
     return $active_plugins;
+}
+
+function oik_unloader_site_option_active_sitewide_plugins( $sitewide_plugins, $option, $network_id ) {
+
+    //echo "Before";
+    //print_r( $sitewide_plugins );
+    //bw_backtrace();
+    $unload_plugins = oik_unloader_unload_plugins();
+    if ( $unload_plugins ) {
+        foreach ( $unload_plugins as $plugin ) {
+            unset( $sitewide_plugins[ $plugin ] );
+        }
+    }
+    //echo "After";
+    //print_r( $sitewide_plugins );
+
+    return $sitewide_plugins;
 }
 
 /**
