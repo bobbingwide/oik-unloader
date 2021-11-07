@@ -183,12 +183,25 @@ class oik_unloader_admin
     }
 
     /**
+     * Gets the active plugins - including sitewide activated plugins.
      *
+     * @return array of active plugins
      */
     function get_active_plugins() {
         $active = get_option('active_plugins');
         //bw_get_active_plugins();
         $active = bw_assoc( $active );
+        bw_trace2( $active, "active", false, BW_TRACE_VERBOSE );
+
+        if ( is_multisite() ) {
+            $active_plugins = get_site_option('active_sitewide_plugins');
+            bw_trace2($active_plugins, "sitewide active", false, BW_TRACE_VERBOSE );
+            if (count($active_plugins)) {
+                foreach ($active_plugins as $key => $value) {
+                    $active[$key] = $key;
+                }
+            }
+        }
         return $active;
 
     }
