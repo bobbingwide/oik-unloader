@@ -59,6 +59,7 @@ function oik_unloader_mu_loaded()
             oik_unloader_unload_plugins($plugins);
             add_filter( "option_active_plugins", "oik_unloader_option_active_plugins", 10, 2);
             add_filter( "site_option_active_sitewide_plugins", "oik_unloader_site_option_active_sitewide_plugins", 10, 3 );
+            add_action( 'shutdown', 'oik_unloader_shutdown', 2);
         }
 
     }
@@ -295,3 +296,8 @@ function oik_unloader_mu_query_plugins_for_query($index)
     return $plugins;
 }
 
+
+function oik_unloader_shutdown() {
+    remove_filter( "option_active_plugins", "oik_unloader_option_active_plugins", 10);
+    remove_filter( "site_option_active_sitewide_plugins", "oik_unloader_site_option_active_sitewide_plugins", 10 );
+}
