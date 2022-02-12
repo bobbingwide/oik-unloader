@@ -3,8 +3,8 @@ Contributors: bobbingwide, vsgloik
 Donate link: https://www.oik-plugins.com/oik/oik-donate/
 Tags: oik, plugin, unloader
 Requires at least: 5.8.1
-Tested up to: 5.8.1
-Stable tag: 0.1.0
+Tested up to: 5.9
+Stable tag: 0.1.1
 
 WordPress Must Use plugin to unload unnecessary plugins on demand.
 
@@ -75,6 +75,9 @@ The REST API and AJAX requests should also produce the expected results.
 3. oik-loader admin page - oik-loader-mu activated
 
 == Upgrade Notice ==
+= 0.1.1 =
+Upgrade to avoid problems that may arise at shutdown.
+
 = 0.1.0 = 
 Upgrade for WordPress Multi Site support.
 
@@ -85,6 +88,10 @@ Upgrade plugin selection using checkboxes.
 Prototype version developed as part of a performance improvement project.
 
 == Changelog ==
+= 0.1.1 =
+* Fixed: Deactivates unloading logic at shutdown. Fixes #6 
+* Tested: With WordPress 5.9
+
 = 0.1.0 = 
 * Changed: Support deactivation of Network Activated plugins in WordPress Multi Site #4
 
