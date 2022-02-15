@@ -300,4 +300,5 @@ function oik_unloader_mu_query_plugins_for_query($index)
 function oik_unloader_shutdown() {
     remove_filter( "option_active_plugins", "oik_unloader_option_active_plugins", 10);
     remove_filter( "site_option_active_sitewide_plugins", "oik_unloader_site_option_active_sitewide_plugins", 10 );
+    do_action( 'activate_plugin', __FILE__);
 }
