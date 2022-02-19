@@ -36,6 +36,7 @@ function oik_unloader_loaded() {
     add_action( "oik_admin_loaded", "oik_unloader_oik_admin_loaded");
     add_action( 'plugins_loaded', 'oik_unloader_plugins_loaded', 100 );
     add_action( 'init', 'oik_unloader_init');
+    add_action( 'oik_unloader_handle_form', 'oik_unloader_handle_form' );
 }
 
 function oik_unloader_admin_menu() {
@@ -94,6 +95,13 @@ function oik_unloader_active_plugins( $atts, $content, $tag) {
     $active_plugins = new OIK_unloader_active_plugins_shortcode();
     $html = $active_plugins->run( $atts, $content, $tag);
     return $html;
+}
+
+function oik_unloader_handle_form() {
+    oik_unloader_plugins_loaded();
+    oik_require( 'classes/class-oik-unloader-active-plugins-shortcode.php', 'oik-unloader');
+    $active_plugins = new OIK_Unloader_Active_Plugins_Shortcode();
+    $active_plugins->handle_form();
 }
 
 oik_unloader_loaded();
