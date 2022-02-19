@@ -56,7 +56,7 @@ function oik_unloader_oik_admin_loaded()
 function oik_unloader_oik_admin_menu() {
 
     if ( did_action( 'oik_admin_menu') ) {
-        // oik admin menu has been loaded so we can use shared libaries and oik admin functions
+        // oik admin menu has been loaded so we can use shared libraries and oik admin functions
     }
 }
 
