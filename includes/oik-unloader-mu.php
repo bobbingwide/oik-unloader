@@ -31,8 +31,13 @@ if (PHP_SAPI !== "cli") {
     oik_unloader_mu_loaded();
 }
 
-function oik_unloader_mu_loaded()
-{
+/**
+ * Function to invoke when oik_unloader_mu is loaded.
+ *
+ * Processes an update request first then loads the index.
+ */
+function oik_unloader_mu_loaded() {
+    oik_unloader_maybe_handle_form();
     $index = oik_unloader_mu_build_index();
     //print_r( $index );
 
@@ -272,7 +277,6 @@ function oik_unloader_mu_determine_post_id($uri)
 }
 
 
-
 function oik_unloader_mu_query_plugins_for_query($index)
 {
     $plugins = null;
@@ -301,4 +305,38 @@ function oik_unloader_shutdown() {
     remove_filter( "option_active_plugins", "oik_unloader_option_active_plugins", 10);
     remove_filter( "site_option_active_sitewide_plugins", "oik_unloader_site_option_active_sitewide_plugins", 10 );
     do_action( 'activate_plugin', __FILE__);
+}
+
+/**
+ * Checks if it's worth doing anything with an _oik_unloader_mu request.
+ *
+ * Actual nonce checking is deferred until the code is loaded.
+ */
+function oik_unloader_maybe_handle_form() {
+    $submitted = isset( $_POST['_oik_unloader_mu']);
+    $nonce = isset( $_POST['_oik_nonce'] );
+    $url = isset( $_POST['url'] );
+    $honeypot = isset( $_POST['oik_saccharin_bowl']);
+    $continue = $submitted && $nonce && $url && $honeypot && empty( $_POST['oik_saccharin_bowl']) && ( $_POST['url'] === $_SERVER['REQUEST_URI'] );
+    if ( $continue ) {
+        oik_unloader_mu_handle_form();
+    } else {
+        /* Doesn't appear to be a valid request. Ignore it.
+
+        echo "Submitted: $submitted";
+        echo "Nonce: $nonce";
+        echo "url: $url";
+        echo "Honeypot: $honeypot";
+        echo "_POST";
+        print_r( $_POST );
+        */
+    }
+}
+
+/**
+ * Loads and invokes the handler for the form.
+ */
+function oik_unloader_mu_handle_form() {
+    require_once WP_PLUGIN_DIR . '/oik-unloader/oik-unloader.php';
+    do_action( 'oik_unloader_handle_form');
 }
