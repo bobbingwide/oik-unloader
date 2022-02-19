@@ -22,6 +22,8 @@ class OIK_Unloader_Active_Plugins_Shortcode
         p( "Original plugins");
         $this->report_plugins( $original_plugins );
         // Do we need to remove the filters?
+        p( "Combination");
+        $this->report_combined( $active_plugins, $original_plugins );
         $html = bw_ret();
         return $html;
     }
@@ -38,14 +40,6 @@ class OIK_Unloader_Active_Plugins_Shortcode
      *
      */
     function list_active_plugins() {
-        p( "getting active plugins ");
-        $active_plugins = $this->bw_get_active_plugins();
-        //print_r( $active_plugins );
-        bw_trace2( $active_plugins, "active_plugins xx", false );
-        return $active_plugins;
-    }
-
-    function bw_get_active_plugins() {
        $active_plugins = [];
        $sitewide_plugins = [];
        if ( is_multisite() ) {
@@ -55,7 +49,6 @@ class OIK_Unloader_Active_Plugins_Shortcode
        $active_plugins = get_option( 'active_plugins' );
        $active_plugins = array_merge( $sitewide_plugins, $active_plugins );
        return $active_plugins;
-
     }
 
     function report_plugins( $plugins ) {
@@ -66,6 +59,65 @@ class OIK_Unloader_Active_Plugins_Shortcode
         eol();
     }
 
+    /**
+     * Reports the combined view of differences
+     *
+     * $active_plugins is the new array. Newly loaded plugins added by oik-loader appear first.
+     * $original_plugins is the starting point.
+     *  A    n2 n1 o1 o3 o4
+     *  O    o1 o2 o3 o4 o5
+     *
+     *  Combined:
+     *
+     *  - o1
+     *  - o2 Unloaded
+     *  - o3
+     *  - o4 Unloaded
+     *  - o5
+     *  - n2 Loaded
+     *  - n1 Loaded
+     *
+     * Notice n2 and n1 are reversed since that's how oik-loader adds plugins.
+     * This shouldn't make any difference to the overall result
+     *
+     * @param $active_plugins
+     * @param $original_plugins
+     */
+    function report_combined( $active_plugins, $original_plugins ) {
+        $assoc_active_plugins = bw_assoc( $active_plugins );
+        $assoc_original_plugins = bw_assoc( $original_plugins );
+
+        $combined = array_merge( $assoc_original_plugins, $assoc_active_plugins );
+        //print_r( $combined );
+        $report = [];
+        foreach (  $combined as $key => $value ) {
+
+            $deleted = isset( $assoc_original_plugins[ $key ] );
+            $added = isset( $assoc_active_plugins[ $key ] );
+            $unchanged = $deleted && $added;
+            $string = $key;
+            if ( $unchanged ) {
+                //
+            } else {
+                $string .= $deleted ? " Unloaded" : "";
+                $string .= $added ? " Loaded" : "";
+            }
+            $report[] = $string;
+
+
+        }
+        $this->report_plugins( $report );
+
+    }
+
+    /**
+     * Returns the original list of plugins before unload / load.
+     *
+     * - Sitewide plugins come first.
+     * - MU plugins and drop-ins are not included.
+     *
+     * @return array
+     */
     function get_original_plugins()     {
         $original_plugins = array_merge( $this->sitewide_plugins, $this->active_plugins );
         return $original_plugins;
@@ -79,20 +131,21 @@ class OIK_Unloader_Active_Plugins_Shortcode
      * @return mixed
      */
     function option_active_plugins( $active_plugins, $option ) {
-        bw_trace2();
+        //bw_trace2();
         $this->active_plugins = $active_plugins;
         return $active_plugins;
     }
 
     /**
      * Saves the original values for sitewide_plugins.
+     *
      * @param $sitewide_plugins
      * @param $option
      * @param $network_id
      * @return mixed
      */
     function site_option_active_sitewide_plugins( $sitewide_plugins, $option, $network_id ) {
-        bw_trace2();
+        //bw_trace2();
         $this->sitewide_plugins = array_keys( $sitewide_plugins );
         return $sitewide_plugins;
     }
