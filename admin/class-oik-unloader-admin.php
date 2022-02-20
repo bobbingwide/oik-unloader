@@ -95,6 +95,27 @@ class oik_unloader_admin
         $this->index[ $url ] = $plugins;
     }
 
+    function update( $csv ) {
+        $url = array_shift( $csv );
+        $ID = array_shift( $csv );
+        if ( 0 === count( $csv )) {
+            unset( $this->index[ $url ]);
+        } else {
+            $this->index[$url] = $csv;
+        }
+        //$this->write_csv();
+        oik_require( 'includes/oik-unloader-admin.php', 'oik-unloader');
+        $target_folder = oik_unloader_target_folder();
+        if ( $target_folder ) {
+            $lines = $this->reconstruct_csv();
+            $csv_file = oik_unloader_csv_file();
+            p("Writing CSV file:" . $csv_file);
+            file_put_contents($csv_file, $lines );
+        }
+
+    }
+
+
     /**
      * Displays the report of plugins to deactivate by URL
      */

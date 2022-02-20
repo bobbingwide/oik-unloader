@@ -38,11 +38,14 @@ class OIK_Unloader_Active_Plugins_Shortcode
         p("Combination");
         $this->determine_combined( $active_plugins, $original_plugins );
         $this->report_combined();
-
+        $this->get_plugins();
         if ( current_user_can( 'activate_plugins') ) {
-            $this->get_plugins();
+
             $this->display_plugins_form( );
+        } else {
+            $this->display_plugins_table();
         }
+
         $html = bw_ret();
         return $html;
     }
@@ -175,21 +178,36 @@ class OIK_Unloader_Active_Plugins_Shortcode
         return $sitewide_plugins;
     }
 
-    function display_plugins_form() {
-        p( "Form goes here");
+    function display_plugins_table( $enabled=false ) {
         stag( "table");
         bw_tablerow( [ "Plugin", "Unloaded", "Loaded"], 'tr', 'th' );
         foreach ( $this->combined as $key => $values ) {
-            $this->display_plugins_row($key, $values);
+            $this->display_plugins_row($key, $values, $enabled );
         }
         etag( "table");
     }
 
-    function display_plugins_row( $key, $values ) {
+    function display_plugins_form() {
+        //p( "Form goes here");
+        bw_form();
+        $this->display_plugins_table( true );
+
+        oik_require_lib( "oik-honeypot" );
+        do_action( "oik_add_honeypot" );
+
+        e( isubmit( '_oik_unloader_mu', "Update activated plugins" ));
+        e( ihidden( 'url', $_SERVER['REQUEST_URI'] ));
+        e( ihidden( 'ID', bw_current_post_id() ));
+        e( wp_nonce_field( "_oik_unloader_mu", "_oik_nonce", false, false ) );
+
+        etag( "form" );
+    }
+
+    function display_plugins_row( $key, $values, $enabled ) {
         $row = [];
         $row[] = $this->plugin_name( $key );
-        $row[] = icheckbox( "unloaded[$key]",$values['unloaded']);
-        $row[] = icheckbox( "loaded[$key]", $values['loaded'] );
+        $row[] = icheckbox( "unloaded[$key]",$values['unloaded'], !$enabled );
+        $row[] = icheckbox( "loaded[$key]", $values['loaded'], !$enabled );
         bw_tablerow( $row );
     }
 
@@ -226,6 +244,89 @@ class OIK_Unloader_Active_Plugins_Shortcode
 
     }
 
+    /**
+     * Validates the form.
+     *
+     * @return false|int
+     */
+    function validate_form()    {
+        oik_require_lib("bobbforms");
+        oik_require_lib("oik-honeypot");
+        do_action("oik_check_honeypot", "Human check failed.");
+
+        // We can't call bw_verify_nonce until later since it calls wp_verify_nonce()
+        // which is in pluggable.php and that's not yet loaded.
+        // $process_form = bw_verify_nonce("_oik_form", "_oik_nonce");
+        $url = $this->get_url();
+        $process_form = ( $url === $_SERVER['REQUEST_URI']);
+        if ( $process_form ) {
+            $ID = $this->get_ID();
+            $process_form = ( empty($ID) || is_numeric( $ID ) );
+        }
+        return $process_form;
+    }
+
+    function handle_form() {
+        //echo "Handling form";
+        if ( $this->validate_form() ) {
+            $this->process_unloads();
+            $this->process_loads();
+        } else {
+            gpb();
+        }
+    }
+
+    /**
+     * Applies any changes to the unloads.
+     *
+     * If there are no unloads selected then we need to delete the entry for the URL if it exists.
+     */
+    function process_unloads() {
+        $unloaded = bw_array_get( $_POST, "unloaded");
+
+        $csv = [];
+        $csv[] = $this->get_url();
+        $csv[] = $this->get_ID();
+        foreach ( $unloaded as $key => $value ) {
+            if ( 'on' === $value ) {
+                $csv[] = $key;
+            }
+        }
+        //if ( count( $csv ) > 2 ) {
+            $this->update_unloaded( $csv );
+        //}
+    }
+
+    function get_url() {
+        $url = bw_array_get( $_POST, "url");
+        $url = trim( $url); // Not necessary since it should match REQUEST_URI.
+        return $url;
+    }
+
+    function get_ID() {
+        $ID = bw_array_get( $_POST, "ID");
+        $ID = trim( $ID );
+        return $ID;
+    }
+
+    function update_unloaded( $csv ) {
+        p( "Updating unloads for: " . $csv[0] );
+        p( implode( ',', $csv ));
+
+        oik_require( 'admin/class-oik-unloader-admin.php', 'oik-unloader' );
+        $oik_unloader_admin = new oik_unloader_admin();
+        $oik_unloader_admin->load_index();
+        $oik_unloader_admin->update( $csv );
+
+        //$index = oik_unloader_mu_build_index();
+
+    }
+
+    function process_loads() {
+        $loaded = bw_array_get( $_POST, "loaded");
+        print_r( $loaded );
+
+    }
 
 
 
