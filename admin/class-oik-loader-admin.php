@@ -1,27 +1,29 @@
 <?php
 
 /**
- * @copyright (C) Copyright Bobbing Wide 2021,2022
+ * @copyright (C) Copyright Bobbing Wide 2022
  * @package oik-unloader
  */
 
 
-class oik_unloader_admin
+class oik_loader_admin
 {
 
     private $index;
     private $active_plugins;
     private $loaded;
     private $url;
+    private $plugins;
 
     function __construct() {
         $this->index = null;
         $this->active_plugins = null;
         $this->loaded = false;
         $this->url = null;
+        $this->plugins = [];
     }
 
-    function oik_unloader_plugins_box() {
+    function oik_loader_plugins_box() {
         $this->loaded = $this->load_mu_functions();
         if ( $this->loaded ) {
             $this->load_index();
@@ -31,16 +33,16 @@ class oik_unloader_admin
     }
 
     function load_mu_functions() {
-        $loaded = function_exists( 'oik_unloader_mu_build_index');
+        $loaded = function_exists( 'oik_loader_mu_build_index');
         if ( !$loaded ) {
-            oik_require('includes/oik-unloader-mu.php', 'oik-unloader');
-            $loaded = function_exists( 'oik_unloader_mu_build_index');
+            oik_require('includes/oik-loader-mu.php', 'oik-loader');
+            $loaded = function_exists( 'oik_loader_mu_build_index');
         }
         return $loaded;
     }
 
     function load_index() {
-        $this->index = oik_unloader_mu_build_index();
+        $this->index = oik_loader_mu_build_index('oik-plugins-extra');
     }
 
     function maybe_update_plugins() {
@@ -104,11 +106,11 @@ class oik_unloader_admin
             $this->index[$url] = $csv;
         }
         //$this->write_csv();
-        oik_require( 'includes/oik-unloader-admin.php', 'oik-unloader');
+        oik_require( 'includes/oik-loader-admin.php', 'oik-loader');
         $target_folder = oik_unloader_target_folder();
         if ( $target_folder ) {
             $lines = $this->reconstruct_csv();
-            $csv_file = oik_unloader_csv_file();
+            $csv_file = oik_loader_csv_file( 'oik-loader-extras');
             //p("Writing CSV file:" . $csv_file);
             file_put_contents($csv_file, $lines );
         }
@@ -117,11 +119,11 @@ class oik_unloader_admin
 
 
     /**
-     * Displays the report of plugins to deactivate by URL
+     * Displays the report of plugins to activate by URL
      */
     function report() {
         if ( $this->index ) {
-            $csv_file = oik_unloader_csv_file();
+            $csv_file = oik_loader_csv_file();
             BW_::p($csv_file);
             $this->print_index($this->index);
 
@@ -131,10 +133,13 @@ class oik_unloader_admin
 
     function print_index( $index ) {
         stag( 'table', 'widefat' );
-        bw_tablerow( ['URL', 'ID', 'Plugins to deactivate'] );
+        bw_tablerow( ['URL', 'ID', 'Plugins to activate'] );
         foreach ( $index as $key => $plugins ) {
-            $ID = oik_unloader_map_id( $key );
-            bw_tablerow(  [$key, $ID, implode("<br />", $plugins )]);
+            if ( is_numeric( $key )) {
+                continue;
+            }
+            $ID = oik_loader_map_id( $key );
+            bw_tablerow(  [$key, $ID, count( $plugins )]);
         }
         etag( 'table' );
     }
@@ -146,12 +151,14 @@ class oik_unloader_admin
         $this->choose_url_button();
         br();
         $this->plugin_checkbox_list();
+        $this->get_plugins();
+        $this->plugin_select_list();
         if ( $this->index ) {
-            e(isubmit('update', 'Update plugins to deactivate'), null, 'button-secondary');
+            e(isubmit('update', 'Update plugins to activate'), null, 'button-secondary');
         }
         $this->add_url_button();
         //etag( 'table');
-       ;
+        ;
         etag( 'form' );
     }
 
@@ -229,43 +236,55 @@ class oik_unloader_admin
 
     function url_select_list( ) {
         if ( $this->index ) {
-            $args = array('#options' => bw_assoc(array_keys($this->index)));
+            $filtered = $this->filtered_index();
+            $args = array('#options' => $filtered);
             BW_::bw_select('_url', "URL", $this->get_url(), $args);
         }
     }
 
+    function filtered_index() {
+        $filtered = [];
+        foreach ( $this->index as $key => $plugins ) {
+            if ( is_numeric( $key )) {
+                continue;
+            }
+            $filtered[ $key ] = $key . ' ' . count( $plugins );
+        }
+        return $filtered;
+    }
+
     function plugin_select_list() {
-        $options = $this->get_active_plugins();
-        $args = array('#options' => $options, '#multiple' => count( $options ) );
+        //$options = $this->get_active_plugins();
+        $args = array('#options' => $this->plugins, '#multiple' => count( $this->plugins ) );
         BW_::bw_select('_plugins', 'Plugins', $this->get_plugins_for_url(), $args);
 
 
     }
     function plugin_checkbox_list() {
-    	$options = $this->get_active_plugins();
-    	$selected = $this->unkeyed_to_checkbox( $this->get_plugins_for_url() );
-    	stag( 'table');
-    	foreach ( $options as $plugin ) {
-		    bw_checkbox_arr( '_plugins', $plugin, $selected, $plugin );
-	    }
-    	etag( 'table');
+        $this->get_plugins();
+        $selected = $this->unkeyed_to_checkbox( $this->get_plugins_for_url() );
+        stag( 'table');
+        foreach ( $this->plugins as $plugin ) {
+            bw_checkbox_arr( '_plugins', $plugin, $selected, $plugin );
+        }
+        etag( 'table');
     }
 
     function unkeyed_to_checkbox( $unkeyed ) {
-    	$checkbox = [];
-    	foreach ( $unkeyed as $key ) {
-    		$checkbox[ $key ] = 'on';
-	    }
-    	return $checkbox;
+        $checkbox = [];
+        foreach ( $unkeyed as $key ) {
+            $checkbox[ $key ] = 'on';
+        }
+        return $checkbox;
     }
 
     function get_selected_plugins() {
         $plugins = bw_array_get( $_REQUEST, '_plugins', [] );
         $selected = [];
         foreach ( $plugins as $key => $value ) {
-        	if ( 'on' === $value ) {
-		        $selected[]=$key;
-	        }
+            if ( 'on' === $value ) {
+                $selected[]=$key;
+            }
         }
         return $selected;
     }
@@ -275,9 +294,9 @@ class oik_unloader_admin
         stag( 'pre');
         e( $csv );
         etag( 'pre');
-        $target_folder = oik_unloader_target_folder();
+        $target_folder = oik_loader_target_folder();
         if ( $target_folder ) {
-            $csv_file = oik_unloader_csv_file();
+            $csv_file = oik_loader_csv_file();
             p("Writing CSV file:" . $csv_file);
             file_put_contents($csv_file, $csv);
         } else {
@@ -299,7 +318,21 @@ class oik_unloader_admin
     }
 
     function get_id_for_url( $url ) {
-        $ID = oik_unloader_map_id( $url, null );
+        $ID = oik_loader_map_id( $url, null );
         return $ID;
+    }
+
+   /**
+    *
+    */
+    function get_plugins() {
+        require_once ABSPATH . 'wp-admin/includes/plugin.php' ;
+        $plugins = get_plugins();
+        $this->plugins = [];
+        foreach ( $plugins as $plugin => $data ) {
+            $this->plugins[ $plugin ] = $data['Name'];
+            $this->plugins[ $plugin ] = $plugin;
+        }
+
     }
 }

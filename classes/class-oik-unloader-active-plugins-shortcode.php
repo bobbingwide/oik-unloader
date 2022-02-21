@@ -35,9 +35,9 @@ class OIK_Unloader_Active_Plugins_Shortcode
 
 
         }
-        p("Combination");
+        //p("Combination");
         $this->determine_combined( $active_plugins, $original_plugins );
-        $this->report_combined();
+        //$this->report_combined();
         $this->get_plugins();
         if ( current_user_can( 'activate_plugins') ) {
 
@@ -191,6 +191,7 @@ class OIK_Unloader_Active_Plugins_Shortcode
         //p( "Form goes here");
         bw_form();
         $this->display_plugins_table( true );
+        $this->display_load_plus();
 
         oik_require_lib( "oik-honeypot" );
         do_action( "oik_add_honeypot" );
@@ -223,12 +224,14 @@ class OIK_Unloader_Active_Plugins_Shortcode
      *
      */
     function get_plugins() {
+        echo " get_plugins: " . count( $this->plugins );
         require_once ABSPATH . 'wp-admin/includes/plugin.php' ;
         $plugins = get_plugins();
         $this->plugins = [];
         foreach ( $plugins as $plugin => $data ) {
             $this->plugins[ $plugin ] = $data['Name'];
         }
+
     }
 
     function get_plugin_name( $key ) {
@@ -267,7 +270,7 @@ class OIK_Unloader_Active_Plugins_Shortcode
     }
 
     function handle_form() {
-        //echo "Handling form";
+        //   echo "Handling form";
         if ( $this->validate_form() ) {
             $this->process_unloads();
             $this->process_loads();
@@ -283,18 +286,45 @@ class OIK_Unloader_Active_Plugins_Shortcode
      */
     function process_unloads() {
         $unloaded = bw_array_get( $_POST, "unloaded");
+        print_r( $unloaded );
 
+        $csv = $this->get_csv( $unloaded );
+        //if ( count( $csv ) > 2 ) {
+            $this->update_unloaded( $csv );
+        //}
+    }
+
+    /**
+     * Process the loads options.
+     *
+     * Also needs to handle the additional field for the select list.
+     */
+
+    function process_loads() {
+
+        $loaded = bw_array_get( $_POST, "loaded");
+        echo PHP_EOL;
+        echo "Loaded:" ;
+        print_r( $loaded );
+        $csv = $this->get_csv( $loaded );
+        $load_plus = $this->get_load_plus();
+        $load_plus = $this->validate_load_plus( $load_plus );
+        if ( $load_plus ) {
+            $csv[] = $load_plus;
+        }
+        $this->update_loaded( $csv );
+    }
+
+    function get_csv( $field ) {
         $csv = [];
         $csv[] = $this->get_url();
         $csv[] = $this->get_ID();
-        foreach ( $unloaded as $key => $value ) {
+        foreach ( $field as $key => $value ) {
             if ( 'on' === $value ) {
                 $csv[] = $key;
             }
         }
-        //if ( count( $csv ) > 2 ) {
-            $this->update_unloaded( $csv );
-        //}
+        return $csv;
     }
 
     function get_url() {
@@ -307,6 +337,56 @@ class OIK_Unloader_Active_Plugins_Shortcode
         $ID = bw_array_get( $_POST, "ID");
         $ID = trim( $ID );
         return $ID;
+    }
+
+    /**
+     * Displays a select list to allow another plugin to be loaded.
+     *
+     * @TODO The plugin list should exclude those already displayed.
+     */
+    function display_load_plus() {
+        $plugins = $this->get_inactive_plugins();
+        $args = [ '#options' => $plugins, '#optional' => true ];
+        br();
+        BW_::bw_select( 'load_plus', 'Add a plugin to be loaded', null, $args );
+        br();
+    }
+
+    /**
+     * Returns an array of inactive plugins.
+     *
+     * @return array
+     */
+    function get_inactive_plugins() {
+        $this->get_plugins();
+        $all_plugins = array_keys( $this->plugins );
+        //print_r( $this->combined );
+        $inactive_plugins = array_diff( $all_plugins, array_keys( $this->combined ));
+        //print_r( $plugins );
+
+        $inactive_plugins = bw_assoc( $inactive_plugins) ;
+        asort( $inactive_plugins );
+        return $inactive_plugins;
+    }
+
+    function get_load_plus() {
+        $load_plus = bw_array_get( $_POST, "load_plus" );
+        return $load_plus;
+    }
+
+    /**
+     * Checks the plugin is installed.
+     *
+     * @param $load_plus
+     * @return mixed
+     */
+    function validate_load_plus( $load_plus ) {
+        $this->get_plugins();
+        $valid = bw_array_get( $this->plugins, $load_plus, null );
+        if ( !$valid ) {
+            return null;
+        }
+        return $load_plus;
     }
 
     function update_unloaded( $csv ) {
@@ -322,11 +402,20 @@ class OIK_Unloader_Active_Plugins_Shortcode
 
     }
 
-    function process_loads() {
-        $loaded = bw_array_get( $_POST, "loaded");
-        print_r( $loaded );
+    function update_loaded( $csv ) {
+        p( "Updating loads for: " . $csv[0] );
+        p( implode( ',', $csv ));
+
+        oik_require( 'admin/class-oik-loader-admin.php', 'oik-unloader' );
+        $oik_loader_admin = new oik_loader_admin();
+        $oik_loader_admin->load_index();
+        $oik_loader_admin->update( $csv );
+
+        //$index = oik_unloader_mu_build_index();
 
     }
+
+
 
 
 
