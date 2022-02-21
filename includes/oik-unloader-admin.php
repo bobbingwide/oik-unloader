@@ -26,10 +26,13 @@ function oik_unloader_lazy_admin_menu()
 function oik_unloader_do_page()
 {
     oik_require( "admin/class-oik-unloader-admin.php", 'oik-unloader');
+    //oik_require( "admin/class-oik-loader-admin.php", 'oik-unloader' );
     $oik_unloader_admin = new oik_unloader_admin();
+    //$oik_loader_admin = new oik_loader_admin();
 
     BW_::oik_menu_header(__("oik unloader", "oik"), "w95pc");
     BW_::oik_box(null, null, __('plugins', 'oik-unloader'), [ $oik_unloader_admin, "oik_unloader_plugins_box"] );
+    //BW_::oik_box( null, null, __('loader', 'oik-unloader'), [ $oik_loader_admin, "oik_loader_plugins_box"] );
     BW_::oik_box(null, null, __('oik-unloader-mu', 'oik'), "oik_unloader_oik_menu_box");
     oik_menu_footer();
     bw_flush();
