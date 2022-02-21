@@ -8,11 +8,14 @@
 class OIK_Unloader_Active_Plugins_Shortcode
 {
 
-    private $active_plugins;
-    private $sitewide_plugins;
-    private $combined; // Array of  plugins indicating unchanged, added or deleted
+    private $active_plugins; // Array of active plugins as far as WordPress is concerned.
+    private $sitewide_plugins; // Array of Network Activated plugins as far as WordPress is concerned.
+    private $combined; // Array of plugins indicating unchanged, added or deleted
     private $plugins; // Array of all plugins reduced to plugin_file => Name
 
+    /**
+     * Initialises the class.
+     */
     function __construct() {
         $this->active_plugins = [];
         $this->sitewide_plugins = [];
@@ -20,32 +23,46 @@ class OIK_Unloader_Active_Plugins_Shortcode
         $this->plugins = [];
     }
 
+    /**
+     * Returns true if oik-loader-MU plugin is loaded.
+     *
+     * If the oik-loader-MU plugin is loaded then we can probably assume that
+     * oik-loader functions can be used. I'll find out during testing.
+     * @return bool
+     */
+    function is_oik_loader_mu_loaded() {
+        $loaded = function_exists( 'oik_loader_mu_loaded');
+        return $loaded;
+    }
+
+    /**
+     * Runs the [active_plugins] shortcode.
+     *
+     * @TODO Add some args to support debug or timing or something.
+     * @param $atts
+     * @param $content
+     * @param $tag
+     * @return string
+     */
     function run( $atts, $content, $tag ) {
         $html = "active_plugins run";
         add_filter( 'option_active_plugins', [ $this, 'option_active_plugins'], -1000, 2 );
         add_filter( 'site_option_active_sitewide_plugins', [ $this, 'site_option_active_sitewide_plugins'], -1000, 3 );
         $active_plugins = $this->list_active_plugins();
-        // Do we need to remove the filters?
+        // Remove the filters, they're no longer needed.
+        remove_filter( 'option_active_plugins', [ $this, 'option_active_plugins'], -1000 );
+        remove_filter( 'site_option_active_sitewide_plugins', [ $this, 'site_option_active_sitewide_plugins'], -1000 );
         $original_plugins = $this->get_original_plugins();
-        if ( false ) {
-            p("Active plugins");
-            $this->report_plugins($active_plugins);
-            p("Original plugins");
-            $this->report_plugins($original_plugins);
 
-
-        }
-        //p("Combination");
         $this->determine_combined( $active_plugins, $original_plugins );
         //$this->report_combined();
         $this->get_plugins();
+        $loaded_available = $this->is_oik_loader_mu_loaded();
         if ( current_user_can( 'activate_plugins') ) {
-
-            $this->display_plugins_form( );
+            $this->display_plugins_form( $loaded_available );
         } else {
-            $this->display_plugins_table();
+            $this->display_plugins_table( true, $loaded_available );
         }
-
         $html = bw_ret();
         return $html;
     }
@@ -123,6 +140,9 @@ class OIK_Unloader_Active_Plugins_Shortcode
         }
     }
 
+    /**
+     * Simple report of the combined plugins.
+     */
     function report_combined() {
         $report = [];
         foreach (  $this->combined as $key => $values ) {
@@ -178,21 +198,37 @@ class OIK_Unloader_Active_Plugins_Shortcode
         return $sitewide_plugins;
     }
 
-    function display_plugins_table( $enabled=false ) {
-        stag( "table");
-        bw_tablerow( [ "Plugin", "Unloaded", "Loaded"], 'tr', 'th' );
+    /**
+     * Displays the plugins table.
+     *
+     * @param false $enabled
+     * @param bool $loaded_available
+     */
+    function display_plugins_table( $enabled=false, $loaded_available=true )
+    {
+        stag("table");
+        //
+        if ( $loaded_available ) {
+            bw_tablerow(["Plugin", "Unload", "Load"], 'tr', 'th');
+        } else {
+            bw_tablerow( ["Plugin", "Unload"], 'tr', 'th' );
+        }
         foreach ( $this->combined as $key => $values ) {
-            $this->display_plugins_row($key, $values, $enabled );
+            $this->display_plugins_row($key, $values, $enabled, $loaded_available );
         }
         etag( "table");
     }
 
-    function display_plugins_form() {
-        //p( "Form goes here");
-        bw_form();
-        $this->display_plugins_table( true );
-        $this->display_load_plus();
+    /**
+     * Displays the plugins form.
+     */
+    function display_plugins_form( $loaded_available ) {
 
+        bw_form();
+        $this->display_plugins_table( true, $loaded_available );
+        if ( $loaded_available ) {
+            $this->display_load_plus();
+        }
         oik_require_lib( "oik-honeypot" );
         do_action( "oik_add_honeypot" );
 
@@ -204,11 +240,13 @@ class OIK_Unloader_Active_Plugins_Shortcode
         etag( "form" );
     }
 
-    function display_plugins_row( $key, $values, $enabled ) {
+    function display_plugins_row( $key, $values, $enabled, $loaded_available ) {
         $row = [];
         $row[] = $this->plugin_name( $key );
         $row[] = icheckbox( "unloaded[$key]",$values['unloaded'], !$enabled );
-        $row[] = icheckbox( "loaded[$key]", $values['loaded'], !$enabled );
+        if ( $loaded_available ) {
+            $row[] = icheckbox("loaded[$key]", $values['loaded'], !$enabled);
+        }
         bw_tablerow( $row );
     }
 
@@ -273,7 +311,9 @@ class OIK_Unloader_Active_Plugins_Shortcode
         //   echo "Handling form";
         if ( $this->validate_form() ) {
             $this->process_unloads();
-            $this->process_loads();
+            if ( $this->is_oik_loader_mu_loaded()) {
+                $this->process_loads();
+            }
         } else {
             gpb();
         }
@@ -294,8 +334,10 @@ class OIK_Unloader_Active_Plugins_Shortcode
      * Process the loads options.
      *
      * Also needs to handle the additional field for the select list.
+     * Only invoked when oik-loader-MU is available.
      */
     function process_loads() {
+
         $loaded = bw_array_get( $_POST, "loaded");
         //echo PHP_EOL;
         //echo "Loaded:" ;
