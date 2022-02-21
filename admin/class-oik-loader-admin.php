@@ -41,6 +41,11 @@ class oik_loader_admin
         return $loaded;
     }
 
+    /**
+     * Loads the extras index.
+     *
+     * This doesn't load the automatically managed files for oik-loader.
+     */
     function load_index() {
         $this->index = oik_loader_mu_build_index('oik-plugins-extra');
     }
@@ -102,9 +107,13 @@ class oik_loader_admin
         $ID = array_shift( $csv );
         if ( 0 === count( $csv )) {
             unset( $this->index[ $url ]);
+            unset( $this->index[ $ID ] );
         } else {
             $this->index[$url] = $csv;
+            //$this->index[ $ID ] = $csv;
+            oik_loader_map_id( $url, $ID );
         }
+
         //$this->write_csv();
         oik_require( 'includes/oik-loader-admin.php', 'oik-loader');
         $target_folder = oik_unloader_target_folder();
@@ -113,6 +122,7 @@ class oik_loader_admin
             $csv_file = oik_loader_csv_file( 'oik-loader-extras');
             //p("Writing CSV file:" . $csv_file);
             file_put_contents($csv_file, $lines );
+            do_action( 'oik-loader-mu-reload');
         }
 
     }
@@ -306,15 +316,19 @@ class oik_loader_admin
 
     function reconstruct_csv() {
         $lines = '';
-        foreach ( $this->index as $url => $plugins ) {
-            $ID = $this->get_id_for_url( $url );
+        if ( null === $this->index ) {
+            return $lines;
+        }
+        foreach ($this->index as $url => $plugins) {
+            //if ( null === $ID) {
+            $ID = $this->get_id_for_url($url);
+            ///}
             $line = "$url,$ID,";
-            $line .= implode(',', $plugins ) ;
+            $line .= implode(',', $plugins);
             $line .= PHP_EOL;
             $lines .= $line;
         }
         return $lines;
-
     }
 
     function get_id_for_url( $url ) {

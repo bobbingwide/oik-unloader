@@ -224,7 +224,7 @@ class OIK_Unloader_Active_Plugins_Shortcode
      *
      */
     function get_plugins() {
-        echo " get_plugins: " . count( $this->plugins );
+        //echo " get_plugins: " . count( $this->plugins );
         require_once ABSPATH . 'wp-admin/includes/plugin.php' ;
         $plugins = get_plugins();
         $this->plugins = [];
@@ -286,12 +286,8 @@ class OIK_Unloader_Active_Plugins_Shortcode
      */
     function process_unloads() {
         $unloaded = bw_array_get( $_POST, "unloaded");
-        print_r( $unloaded );
-
         $csv = $this->get_csv( $unloaded );
-        //if ( count( $csv ) > 2 ) {
-            $this->update_unloaded( $csv );
-        //}
+        $this->update_unloaded( $csv );
     }
 
     /**
@@ -299,13 +295,11 @@ class OIK_Unloader_Active_Plugins_Shortcode
      *
      * Also needs to handle the additional field for the select list.
      */
-
     function process_loads() {
-
         $loaded = bw_array_get( $_POST, "loaded");
-        echo PHP_EOL;
-        echo "Loaded:" ;
-        print_r( $loaded );
+        //echo PHP_EOL;
+        //echo "Loaded:" ;
+        //print_r( $loaded );
         $csv = $this->get_csv( $loaded );
         $load_plus = $this->get_load_plus();
         $load_plus = $this->validate_load_plus( $load_plus );
