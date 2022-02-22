@@ -165,9 +165,10 @@ function oik_unloader_active_plugins_dynamic_block( $attributes ) {
 		$classes .= 'has-text-align-' . $attributes['textAlign'];
 	}
 	$wrapper_attributes = get_block_wrapper_attributes( array( 'class' => $classes ) );
-	$localised_time = date_i18n( get_option( 'time_format'));
+	//	$localised_time = date_i18n( get_option( 'time_format'));
 	/* translators: %s: time in user's preferred format */
-	$content = sprintf( __( 'Active plugins block rendered at %s', 'oik-unloader'), $localised_time );
+	//$content = sprintf( __( 'Active plugins block rendered at %s', 'oik-unloader'), $localised_time );
+	$content = oik_unloader_active_plugins( $attributes, '', 'active_plugins');
 	$html = sprintf( '<div %1$s>%2$s</div>', $wrapper_attributes, $content );
 	return $html;
 }
