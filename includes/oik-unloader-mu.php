@@ -291,12 +291,6 @@ function oik_unloader_mu_query_plugins_for_query($index)
         //echo $query_index;
         $plugins = oik_unloader_mu_query_plugins($index, $query_index);
     }
-    /*
-    if ( isset( $parms['edd-api'])) {
-        $plugins[] = 'edd-blocks/edd-blocks.php';
-        $plugins[] = 'easy-digital-downloads/easy-digital-downloads.php';
-    }
-    */
     return $plugins;
 }
 
