@@ -236,6 +236,7 @@ class OIK_Unloader_Active_Plugins_Shortcode
         e( ihidden( 'url', $_SERVER['REQUEST_URI'] ));
         e( ihidden( 'ID', bw_current_post_id() ));
         e( wp_nonce_field( "_oik_unloader_mu", "_oik_nonce", false, false ) );
+        $this->display_timings();
 
         etag( "form" );
     }
@@ -315,7 +316,7 @@ class OIK_Unloader_Active_Plugins_Shortcode
                 $this->process_loads();
             }
         } else {
-            gpb();
+            p( "Something went wrong with form validation");
         }
     }
 
@@ -426,8 +427,8 @@ class OIK_Unloader_Active_Plugins_Shortcode
     }
 
     function update_unloaded( $csv ) {
-        p( "Updating unloads for: " . $csv[0] );
-        p( implode( ',', $csv ));
+        //p( "Updating unloads for: " . $csv[0] );
+        //p( implode( ',', $csv ));
 
         oik_require( 'admin/class-oik-unloader-admin.php', 'oik-unloader' );
         $oik_unloader_admin = new oik_unloader_admin();
@@ -439,8 +440,8 @@ class OIK_Unloader_Active_Plugins_Shortcode
     }
 
     function update_loaded( $csv ) {
-        p( "Updating loads for: " . $csv[0] );
-        p( implode( ',', $csv ));
+        //p( "Updating loads for: " . $csv[0] );
+        //p( implode( ',', $csv ));
 
         oik_require( 'admin/class-oik-loader-admin.php', 'oik-unloader' );
         $oik_loader_admin = new oik_loader_admin();
@@ -448,6 +449,40 @@ class OIK_Unloader_Active_Plugins_Shortcode
         $oik_loader_admin->update( $csv );
 
         //$index = oik_unloader_mu_build_index();
+
+    }
+
+    function display_timings() {
+        $timings = $this->get_timings();
+        $elapsed = $this->get_elapsed();
+        $timings = $this->display_elapsed_previous( $elapsed, $timings );
+        e( ihidden( 'timings', $timings ));
+
+    }
+
+    function get_timings() {
+        $timings = bw_array_get( $_POST, 'timings', null );
+        return $timings;
+    }
+
+    function get_elapsed() {
+        global $timestart;
+        $elapsed = microtime( true ) - $timestart;
+        $elapsed = sprintf( "%.6f", $elapsed );
+        return $elapsed;
+    }
+
+    function display_elapsed_previous( $elapsed, $timings ) {
+        $timings_array = [];
+        if ( !empty( $timings )) {
+            $timings_array = explode(',', $timings);
+        }
+        //print_r( $timings_array);
+        array_unshift( $timings_array, $elapsed );
+        array_splice( $timings_array, 10 );
+        $timings = implode( ',', $timings_array );
+        p( $timings );
+        return $timings;
 
     }
 
