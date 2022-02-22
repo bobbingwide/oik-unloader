@@ -5,240 +5,260 @@
  *
  */
 
-class OIK_Unloader_Active_Plugins_Shortcode
-{
+class OIK_Unloader_Active_Plugins_Shortcode {
 
-    private $active_plugins; // Array of active plugins as far as WordPress is concerned.
-    private $sitewide_plugins; // Array of Network Activated plugins as far as WordPress is concerned.
-    private $combined; // Array of plugins indicating unchanged, added or deleted
-    private $plugins; // Array of all plugins reduced to plugin_file => Name
+	private $active_plugins; // Array of active plugins as far as WordPress is concerned.
+	private $sitewide_plugins; // Array of Network Activated plugins as far as WordPress is concerned.
+	private $combined; // Array of plugins indicating unchanged, added or deleted
+	private $plugins; // Array of all plugins reduced to plugin_file => Name
 
-    /**
-     * Initialises the class.
-     */
-    function __construct() {
-        $this->active_plugins = [];
-        $this->sitewide_plugins = [];
-        $this->combined = [];
-        $this->plugins = [];
-    }
+	/**
+	 * Initialises the class.
+	 */
+	function __construct() 	{
+		$this->active_plugins = [];
+		$this->sitewide_plugins = [];
+		$this->combined = [];
+		$this->plugins = [];
+	}
 
-    /**
-     * Returns true if oik-loader-MU plugin is loaded.
-     *
-     * If the oik-loader-MU plugin is loaded then we can probably assume that
-     * oik-loader functions can be used. I'll find out during testing.
-     * @return bool
-     */
-    function is_oik_loader_mu_loaded() {
-        $loaded = function_exists( 'oik_loader_mu_loaded');
-        return $loaded;
-    }
+	/**
+	 * Returns true if oik-loader-MU plugin is loaded.
+	 *
+	 * If the oik-loader-MU plugin is loaded then we can probably assume that
+	 * oik-loader functions can be used. I'll find out during testing.
+	 * @return bool
+	 */
+	function is_oik_loader_mu_loaded() 	{
+		$loaded = function_exists('oik_loader_mu_loaded');
+		return $loaded;
+	}
 
-    /**
-     * Runs the [active_plugins] shortcode.
-     *
-     * @TODO Add some args to support debug or timing or something.
-     * @param $atts
-     * @param $content
-     * @param $tag
-     * @return string
-     */
-    function run( $atts, $content, $tag ) {
-        $html = "active_plugins run";
-        add_filter( 'option_active_plugins', [ $this, 'option_active_plugins'], -1000, 2 );
-        add_filter( 'site_option_active_sitewide_plugins', [ $this, 'site_option_active_sitewide_plugins'], -1000, 3 );
-        $active_plugins = $this->list_active_plugins();
-        // Remove the filters, they're no longer needed.
-        remove_filter( 'option_active_plugins', [ $this, 'option_active_plugins'], -1000 );
-        remove_filter( 'site_option_active_sitewide_plugins', [ $this, 'site_option_active_sitewide_plugins'], -1000 );
-        $original_plugins = $this->get_original_plugins();
+	/**
+	 * Runs the [active_plugins] shortcode.
+	 *
+	 * @TODO Add some args to support debug or timing or something.
+	 * @param $atts
+	 * @param $content
+	 * @param $tag
+	 * @return string
+	 */
+	function run($atts, $content, $tag) 	{
+		$html = "active_plugins run";
+		add_filter('option_active_plugins', [$this, 'option_active_plugins'], -1000, 2);
+		add_filter('site_option_active_sitewide_plugins', [$this, 'site_option_active_sitewide_plugins'], -1000, 3);
+		$active_plugins = $this->list_active_plugins();
+		// Remove the filters, they're no longer needed.
+		remove_filter('option_active_plugins', [$this, 'option_active_plugins'], -1000);
+		remove_filter('site_option_active_sitewide_plugins', [$this, 'site_option_active_sitewide_plugins'], -1000);
+		$original_plugins = $this->get_original_plugins();
 
-        $this->determine_combined( $active_plugins, $original_plugins );
-        //$this->report_combined();
-        $this->get_plugins();
-        $loaded_available = $this->is_oik_loader_mu_loaded();
-        if ( current_user_can( 'activate_plugins') ) {
-            $this->display_plugins_form( $loaded_available );
-        } else {
-            $this->display_plugins_table( true, $loaded_available );
-        }
-        $html = bw_ret();
-        return $html;
-    }
+		$this->determine_combined($active_plugins, $original_plugins);
+		//$this->report_combined();
+		$this->get_plugins();
+		$loaded_available = $this->is_oik_loader_mu_loaded();
+		$is_front_end = $this->is_front_end();
 
-    /**
-     * Lists the actual active plugins.
-     *
-     * This is the list after the filters have been run.
-     * We also need the list of Network enabled plugins.
-     *
-     * class OIK_unloader_admin's logic works since oik-unloader and oik-unloader aren't expected to do things in wp-admin.
-     * How do we get the raw list of plugins before it's been fiddled with?
-     * Answer... filter the options before the fiddlers.
-     *
-     */
-    function list_active_plugins() {
-       $active_plugins = [];
-       $sitewide_plugins = [];
-       if ( is_multisite() ) {
-           $sitewide_plugins = get_site_option('active_sitewide_plugins');
-           $sitewide_plugins = array_keys( $sitewide_plugins );
-       }
-       $active_plugins = get_option( 'active_plugins' );
-       $active_plugins = array_merge( $sitewide_plugins, $active_plugins );
-       return $active_plugins;
-    }
+		if ( $is_front_end && current_user_can('activate_plugins') ) {
+			$this->display_plugins_form( $loaded_available);
+		} else {
+			$this->display_plugins_table( $is_front_end, $loaded_available);
+			if ( !$is_front_end ) {
+				if ($loaded_available) {
+					p("Save the post then view it to choose the plugins to unload or load.");
+				} else {
+					p("Save the post then view it to choose the plugins to unload.");
+				}
+			}
+		}
+		$html = bw_ret();
+		return $html;
+	}
 
-    function report_plugins( $plugins ) {
-        sol();
-        foreach ( $plugins as $plugin ) {
-            li( $plugin );
-        }
-        eol();
-    }
+	/**
+	 * Lists the actual active plugins.
+	 *
+	 * This is the list after the filters have been run.
+	 * We also need the list of Network enabled plugins.
+	 *
+	 * class OIK_unloader_admin's logic works since oik-unloader and oik-unloader aren't expected to do things in wp-admin.
+	 * How do we get the raw list of plugins before it's been fiddled with?
+	 * Answer... filter the options before the fiddlers.
+	 *
+	 */
+	function list_active_plugins() 	{
+		$active_plugins = [];
+		$sitewide_plugins = [];
+		if (is_multisite()) {
+			$sitewide_plugins = get_site_option('active_sitewide_plugins');
+			$sitewide_plugins = array_keys($sitewide_plugins);
+		}
+		$active_plugins = get_option('active_plugins');
+		$active_plugins = array_merge($sitewide_plugins, $active_plugins);
+		return $active_plugins;
+	}
 
-    /**
-     * Reports the combined view of differences
-     *
-     * $active_plugins is the new array. Newly loaded plugins added by oik-loader appear first.
-     * $original_plugins is the starting point.
-     *  A    n2 n1 o1 o3 o4
-     *  O    o1 o2 o3 o4 o5
-     *
-     *  Combined:
-     *
-     *  - o1
-     *  - o2 Unloaded
-     *  - o3
-     *  - o4 Unloaded
-     *  - o5
-     *  - n2 Loaded
-     *  - n1 Loaded
-     *
-     * Notice n2 and n1 are reversed since that's how oik-loader adds plugins.
-     * This shouldn't make any difference to the overall result
-     *
-     * @param $active_plugins
-     * @param $original_plugins
-     */
-    function determine_combined( $active_plugins, $original_plugins ) {
-        $assoc_active_plugins = bw_assoc( $active_plugins );
-        $assoc_original_plugins = bw_assoc( $original_plugins );
-        $combined = array_merge( $assoc_original_plugins, $assoc_active_plugins );
-        $this->combined = [];
-        foreach (  $combined as $key => $value ) {
-            $unloaded = isset( $assoc_original_plugins[ $key ] );
-            $loaded = isset( $assoc_active_plugins[ $key ] );
-            $unchanged = $unloaded && $loaded;
-            if ( $unchanged ) {
-                $unloaded = false;
-                $loaded = false;
-            }
-            $this->combined[ $key ] = [ 'unchanged' => $unchanged, 'loaded' => $loaded, 'unloaded' => $unloaded ];
+	function report_plugins($plugins) 	{
+		sol();
+		foreach ($plugins as $plugin) {
+			li($plugin);
+		}
+		eol();
+	}
 
-        }
-    }
+	/**
+	 * Reports the combined view of differences
+	 *
+	 * $active_plugins is the new array. Newly loaded plugins added by oik-loader appear first.
+	 * $original_plugins is the starting point.
+	 *  A    n2 n1 o1 o3 o4
+	 *  O    o1 o2 o3 o4 o5
+	 *
+	 *  Combined:
+	 *
+	 *  - o1
+	 *  - o2 Unloaded
+	 *  - o3
+	 *  - o4 Unloaded
+	 *  - o5
+	 *  - n2 Loaded
+	 *  - n1 Loaded
+	 *
+	 * Notice n2 and n1 are reversed since that's how oik-loader adds plugins.
+	 * This shouldn't make any difference to the overall result
+	 *
+	 * @param $active_plugins
+	 * @param $original_plugins
+	 */
+	function determine_combined($active_plugins, $original_plugins) {
+		$assoc_active_plugins = bw_assoc($active_plugins);
+		$assoc_original_plugins = bw_assoc($original_plugins);
+		$combined = array_merge($assoc_original_plugins, $assoc_active_plugins);
+		$this->combined = [];
+		foreach ($combined as $key => $value) {
+			$unloaded = isset($assoc_original_plugins[$key]);
+			$loaded = isset($assoc_active_plugins[$key]);
+			$unchanged = $unloaded && $loaded;
+			if ($unchanged) {
+				$unloaded = false;
+				$loaded = false;
+			}
+			$this->combined[$key] = ['unchanged' => $unchanged, 'loaded' => $loaded, 'unloaded' => $unloaded];
 
-    /**
-     * Simple report of the combined plugins.
-     */
-    function report_combined() {
-        $report = [];
-        foreach (  $this->combined as $key => $values ) {
-            $string = $key;
-            if ( $values['unchanged'] ) {
-                //
-            } else {
-                $string .= $values['unloaded'] ? " Unloaded" : "";
-                $string .= $values['loaded'] ? " Loaded" : "";
-            }
-            $report[] = $string;
-        }
-        $this->report_plugins( $report );
-    }
+		}
+	}
 
-    /**
-     * Returns the original list of plugins before unload / load.
-     *
-     * - Sitewide plugins come first.
-     * - MU plugins and drop-ins are not included.
-     *
-     * @return array
-     */
-    function get_original_plugins()     {
-        $original_plugins = array_merge( $this->sitewide_plugins, $this->active_plugins );
-        return $original_plugins;
-    }
+	/**
+	 * Simple report of the combined plugins.
+	 */
+	function report_combined() {
+		$report = [];
+		foreach ($this->combined as $key => $values) {
+			$string = $key;
+			if ($values['unchanged']) {
+				//
+			} else {
+				$string .= $values['unloaded'] ? " Unloaded" : "";
+				$string .= $values['loaded'] ? " Loaded" : "";
+			}
+			$report[] = $string;
+		}
+		$this->report_plugins($report);
+	}
 
-    /**
-     * Saves the original values for active_plugins.
-     *
-     * @param $active_plugins
-     * @param $option
-     * @return mixed
-     */
-    function option_active_plugins( $active_plugins, $option ) {
-        //bw_trace2();
-        $this->active_plugins = $active_plugins;
-        return $active_plugins;
-    }
+	/**
+	 * Returns the original list of plugins before unload / load.
+	 *
+	 * - Sitewide plugins come first.
+	 * - MU plugins and drop-ins are not included.
+	 *
+	 * @return array
+	 */
+	function get_original_plugins() {
+		$original_plugins = array_merge($this->sitewide_plugins, $this->active_plugins);
+		return $original_plugins;
+	}
 
-    /**
-     * Saves the original values for sitewide_plugins.
-     *
-     * @param $sitewide_plugins
-     * @param $option
-     * @param $network_id
-     * @return mixed
-     */
-    function site_option_active_sitewide_plugins( $sitewide_plugins, $option, $network_id ) {
-        //bw_trace2();
-        $this->sitewide_plugins = array_keys( $sitewide_plugins );
-        return $sitewide_plugins;
-    }
+	/**
+	 * Saves the original values for active_plugins.
+	 *
+	 * @param $active_plugins
+	 * @param $option
+	 * @return mixed
+	 */
+	function option_active_plugins($active_plugins, $option) {
+		//bw_trace2();
+		$this->active_plugins = $active_plugins;
+		return $active_plugins;
+	}
 
-    /**
-     * Displays the plugins table.
-     *
-     * @param false $enabled
-     * @param bool $loaded_available
-     */
-    function display_plugins_table( $enabled=false, $loaded_available=true )
-    {
-        stag("table");
-        //
-        if ( $loaded_available ) {
-            bw_tablerow(["Plugin", "Unload", "Load"], 'tr', 'th');
-        } else {
-            bw_tablerow( ["Plugin", "Unload"], 'tr', 'th' );
-        }
-        foreach ( $this->combined as $key => $values ) {
-            $this->display_plugins_row($key, $values, $enabled, $loaded_available );
-        }
-        etag( "table");
-    }
+	/**
+	 * Saves the original values for sitewide_plugins.
+	 *
+	 * @param $sitewide_plugins
+	 * @param $option
+	 * @param $network_id
+	 * @return mixed
+	 */
+	function site_option_active_sitewide_plugins($sitewide_plugins, $option, $network_id) {
+		//bw_trace2();
+		$this->sitewide_plugins = array_keys($sitewide_plugins);
+		return $sitewide_plugins;
+	}
 
-    /**
-     * Displays the plugins form.
-     */
-    function display_plugins_form( $loaded_available ) {
+	/**
+	 * Displays the plugins table.
+	 *
+	 * @param false $enabled
+	 * @param bool $loaded_available
+	 */
+	function display_plugins_table($enabled = false, $loaded_available = true) {
+		stag("table");
+		//
+		if ($loaded_available) {
+			bw_tablerow(["Plugin", "Unload", "Load"], 'tr', 'th');
+		} else {
+			bw_tablerow(["Plugin", "Unload"], 'tr', 'th');
+		}
+		foreach ($this->combined as $key => $values) {
+			$this->display_plugins_row($key, $values, $enabled, $loaded_available);
+		}
+		etag("table");
+	}
 
-        bw_form();
-        $this->display_plugins_table( true, $loaded_available );
-        if ( $loaded_available ) {
-            $this->display_load_plus();
-        }
-        oik_require_lib( "oik-honeypot" );
-        do_action( "oik_add_honeypot" );
+	/**
+	 * Displays the plugins form.
+	 */
+	function display_plugins_form( $loaded_available) {
 
-        e( isubmit( '_oik_unloader_mu', "Update activated plugins" ));
-        e( ihidden( 'url', $_SERVER['REQUEST_URI'] ));
-        e( ihidden( 'ID', bw_current_post_id() ));
-        e( wp_nonce_field( "_oik_unloader_mu", "_oik_nonce", false, false ) );
-        $this->display_timings();
+		$this->form_tag();
+		$this->display_plugins_table( true, $loaded_available);
+		if ($loaded_available) {
+			$this->display_load_plus();
+		}
+		oik_require_lib("oik-honeypot");
+		do_action("oik_add_honeypot");
 
-        etag( "form" );
+		e(isubmit('_oik_unloader_mu', "Update activated plugins"));
+		$this->display_hidden_url_field();
+		e(ihidden('ID', bw_current_post_id()));
+		e(wp_nonce_field("_oik_unloader_mu", "_oik_nonce", false, false));
+		$this->display_timings();
+
+		etag("form");
+	}
+
+	function is_front_end() {
+		$front_end = ! ( defined( 'REST_REQUEST' ) && REST_REQUEST );
+		return $front_end;
+	}
+
+	function form_tag() {
+		bw_form();
+	}
+
+	function display_hidden_url_field() {
+		e( ihidden( 'url', $_SERVER['REQUEST_URI'] ));
     }
 
     function display_plugins_row( $key, $values, $enabled, $loaded_available ) {
