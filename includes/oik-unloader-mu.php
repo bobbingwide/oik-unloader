@@ -4,12 +4,12 @@
 Plugin Name: oik-unloader-MU
 Plugin URI: https://www.oik-plugins.com/oik-plugins/oik-unloader-mu
 Description: WordPress Must Use plugin to unload unnecessary plugins on demand
-Version: 0.0.0
+Version: 0.2.0
 Author: bobbingwide
 Author URI: https://www.oik-plugins.com/author/bobbingwide
 License: GPL2
 
-    Copyright 2021 Bobbing Wide (email : herb@bobbingwide.com )
+    Copyright 2021, 2022 Bobbing Wide (email : herb@bobbingwide.com )
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License version 2,
@@ -45,7 +45,7 @@ function oik_unloader_mu_loaded() {
         $uri = $_SERVER['REQUEST_URI'];
         $path = parse_url($uri, PHP_URL_PATH);
         $plugins = oik_unloader_mu_query_plugins($index, $path);
-        /*
+
         if (null === $plugins) {
             $post_id = oik_unloader_mu_determine_post_id($uri);
             if ($post_id) {
@@ -57,7 +57,7 @@ function oik_unloader_mu_loaded() {
         }
         //print_r( $plugins );
         //echo "cfd;";
-        */
+
 
         if (null !== $plugins) {
             //$plugins = oik_unloader_plugin_dependencies($plugins);
@@ -141,7 +141,7 @@ function oik_unloader_build_index($lines)
             $url = array_shift($csv);
             $ID = array_shift($csv);
             $index[$url] = $csv;
-            //$index[$ID] = $csv;
+            $index[$ID] = $csv;
             oik_unloader_map_id( $url, $ID );
         }
     }
@@ -300,7 +300,11 @@ function oik_unloader_mu_query_plugins_for_query($index)
     return $plugins;
 }
 
-
+/**
+ * Implements 'shutdown'.
+ *
+ * Prevent weird things happening at shutdown.
+ */
 function oik_unloader_shutdown() {
     remove_filter( "option_active_plugins", "oik_unloader_option_active_plugins", 10);
     remove_filter( "site_option_active_sitewide_plugins", "oik_unloader_site_option_active_sitewide_plugins", 10 );
@@ -335,6 +339,8 @@ function oik_unloader_maybe_handle_form() {
 
 /**
  * Loads and invokes the handler for the form.
+ *
+ * This preloads the oik-unloader logic. I assume it works for symlinked plugins.
  */
 function oik_unloader_mu_handle_form() {
     require_once WP_PLUGIN_DIR . '/oik-unloader/oik-unloader.php';

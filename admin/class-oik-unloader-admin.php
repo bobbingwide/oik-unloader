@@ -100,8 +100,10 @@ class oik_unloader_admin
         $ID = array_shift( $csv );
         if ( 0 === count( $csv )) {
             unset( $this->index[ $url ]);
+            unset( $this->index[ $ID ] );
         } else {
             $this->index[$url] = $csv;
+            $this->index[ $ID ] = $csv;
         }
         //$this->write_csv();
         oik_require( 'includes/oik-unloader-admin.php', 'oik-unloader');
@@ -285,9 +287,19 @@ class oik_unloader_admin
         }
     }
 
+	/**
+	 * Reconstructs the CSV.
+	 *
+	 * Ignores records keyed by the post ID.
+	 *
+	 * @return string
+	 */
     function reconstruct_csv() {
         $lines = '';
         foreach ( $this->index as $url => $plugins ) {
+        	if ( is_numeric( $url ) ) {
+        		continue;
+			}
             $ID = $this->get_id_for_url( $url );
             $line = "$url,$ID,";
             $line .= implode(',', $plugins ) ;
