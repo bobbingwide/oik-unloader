@@ -95,6 +95,12 @@ class oik_unloader_admin
         $this->index[ $url ] = $plugins;
     }
 
+	/**
+	 * Updates the CSV file for the selected URL.
+	 *
+	 * @param $csv
+	 *
+	 */
     function update( $csv ) {
         $url = array_shift( $csv );
         $ID = array_shift( $csv );
@@ -104,6 +110,8 @@ class oik_unloader_admin
         } else {
             $this->index[$url] = $csv;
             $this->index[ $ID ] = $csv;
+		    oik_unloader_map_id( $url, $ID );
+
         }
         //$this->write_csv();
         oik_require( 'includes/oik-unloader-admin.php', 'oik-unloader');
@@ -240,9 +248,8 @@ class oik_unloader_admin
         $options = $this->get_active_plugins();
         $args = array('#options' => $options, '#multiple' => count( $options ) );
         BW_::bw_select('_plugins', 'Plugins', $this->get_plugins_for_url(), $args);
-
-
     }
+
     function plugin_checkbox_list() {
     	$options = $this->get_active_plugins();
     	$selected = $this->unkeyed_to_checkbox( $this->get_plugins_for_url() );
