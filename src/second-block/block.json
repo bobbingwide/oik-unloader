@@ -1,0 +1,32 @@
+{
+ 	"apiVersion": 2,
+  	"name": "oik-sb/second-block",
+  	"version": "0.0.0",
+  	"title": "Second block",
+  	"category": "widgets",
+  	"icon": "clock",
+  	"keywords": [ "Second", "block", "static" ],
+  	"description": "Second starting block",
+  	"supports": {
+		"anchor": true,
+		"align": false,
+		"html": false,
+		"customClassName": true,
+		"className": true,
+		"color": {
+	  		"gradients": false,
+	  		"link": false,
+	  		"text": true,
+	  		"background": true
+		},
+		"typography": {
+	  		"fontSize": true,
+	  		"lineHeight": false
+		},
+		"spacing": {
+	  		"margin": true,
+	  		"padding": true
+		}
+	},
+  	"textdomain": "sb-starting-block"
+}

@@ -1,0 +1,32 @@
+{
+	"apiVersion": 2,
+	"name": "oik-unloader/active-plugins",
+	"title": "Active plugins unloader/loader",
+	"category": "widgets",
+	"icon": "admin-plugins",
+  	"keywords": [ "Plugin", "loader", "unloader" ],
+	"description": "Dynamically alter active plugins per URL",
+  	"supports": {
+		"align": true,
+		"html": false,
+		"customClassName": true,
+		"className": true,
+		"color": {
+	  		"gradients": true,
+	  		"text": true,
+	  		"background": true
+		},
+		"typography": {
+	  		"fontSize": true,
+	  		"lineHeight": true
+		},
+		"spacing": {
+	  		"margin": false,
+	  		"padding": true
+		}
+  	},
+	"textdomain": "oik-unloader",
+	"editorScript": "file:../../build/index.js",
+	"editorStyle": "file:../../build/index.css",
+	"style": "file:../../build/style-index.css"
+}

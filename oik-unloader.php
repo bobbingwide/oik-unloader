@@ -3,7 +3,7 @@
 Plugin Name: oik-unloader
 Plugin URI: https://www.oik-plugins.com/oik-plugins/oik-unloader
 Description: WordPress plugin to dynamically unload unnecessary plugins on demand
-Version: 0.1.1
+Version: 0.2.0
 Author: bobbingwide
 Author URI: https://bobbingwide.com/about-bobbing-wide/
 Text Domain: oik-unloader
@@ -36,7 +36,8 @@ function oik_unloader_loaded() {
     add_action( "oik_admin_loaded", "oik_unloader_oik_admin_loaded");
     add_action( 'plugins_loaded', 'oik_unloader_plugins_loaded', 100 );
     add_action( 'init', 'oik_unloader_init');
-    add_action( 'oik_unloader_handle_form', 'oik_unloader_handle_form' );
+	add_action( 'init', 'oik_unloader_active_plugins_block_init' );
+	add_action( 'oik_unloader_handle_form', 'oik_unloader_handle_form' );
 }
 
 function oik_unloader_admin_menu() {
@@ -50,7 +51,7 @@ function oik_unloader_oik_loaded() {
 
 function oik_unloader_oik_admin_loaded()
 {
-    // oik_admin_loaded has been called so we can shared libraries
+    // oik_admin_loaded has been called, so we can use shared libraries
 
 }
 
@@ -87,7 +88,7 @@ function oik_unloader_boot_libs() {
 }
 
 function oik_unloader_init() {
-    add_shortcode( 'active_plugins', 'oik_unloader_active_plugins' );
+	add_shortcode('active_plugins', 'oik_unloader_active_plugins');
 }
 
 function oik_unloader_active_plugins( $atts, $content, $tag) {
@@ -103,5 +104,73 @@ function oik_unloader_handle_form() {
     $active_plugins = new OIK_Unloader_Active_Plugins_Shortcode();
     $active_plugins->handle_form();
 }
+
+/**
+ * Registers the block using the metadata loaded from the `block.json` file.
+ * Behind the scenes, it registers also all assets so they can be enqueued
+ * through the block editor in the corresponding context.
+ *
+ * @see https://developer.wordpress.org/block-editor/tutorials/block-tutorial/writing-your-first-block-type/
+ */
+function oik_unloader_active_plugins_block_init() {
+	load_plugin_textdomain( 'oik-unloader', false, 'oik-unloader/languages' );
+	$args = [ 'render_callback' => 'oik_unloader_active_plugins_dynamic_block'];
+	register_block_type_from_metadata( __DIR__ . '/src/active-plugins', $args );
+	//register_block_type_from_metadata( __DIR__ . '/src/second-block' );
+
+
+	/**
+	 * Localise the script by loading the required strings for the build/index.js file
+	 * from the locale specific .json file in the languages folder.
+	 * oik-unloader/active-plugins
+	 */
+	$ok = wp_set_script_translations( 'oik-unloader-active-plugins-editor-script', 'oik-unloader' , __DIR__ .'/languages' );
+	//bw_trace2( $ok, "OK?");
+	add_filter( 'load_script_textdomain_relative_path', 'oik_unloader_active_plugins_load_script_textdomain_relative_path', 10, 2);
+
+}
+
+/**
+ * Filters $relative so that md5's match what's expected.
+ *
+ * Depending on how it was built the `build/index.js` may be preceded by `./` or `src/block-name/../../`.
+ * In either of these situations we want the $relative value to be returned as `build/index.js`.
+ * This then produces the correct md5 value and the .json file is found.
+ *
+ * @param $relative
+ * @param $src
+ *
+ * @return mixed
+ */
+function oik_unloader_active_plugins_load_script_textdomain_relative_path( $relative, $src ) {
+	if ( false !== strrpos( $relative, './build/index.js' )) {
+		$relative = 'build/index.js';
+	}
+	//bw_trace2( $relative, "relative");
+	return $relative;
+}
+
+/**
+ * Implements the Active plugins block.
+ *
+ * @param $attributes
+ * @param $content
+ * @param $tag
+ *
+ * @return string
+ */
+function oik_unloader_active_plugins_dynamic_block( $attributes ) {
+	$classes = '';
+	if ( isset( $attributes['textAlign'] ) ) {
+		$classes .= 'has-text-align-' . $attributes['textAlign'];
+	}
+	$wrapper_attributes = get_block_wrapper_attributes( array( 'class' => $classes ) );
+	$localised_time = date_i18n( get_option( 'time_format'));
+	/* translators: %s: time in user's preferred format */
+	$content = sprintf( __( 'Active plugins block rendered at %s', 'oik-unloader'), $localised_time );
+	$html = sprintf( '<div %1$s>%2$s</div>', $wrapper_attributes, $content );
+	return $html;
+}
+
 
 oik_unloader_loaded();
