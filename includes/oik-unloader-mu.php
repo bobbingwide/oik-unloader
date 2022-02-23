@@ -140,6 +140,9 @@ function oik_unloader_build_index($lines)
             //echo $csv[0];
             $url = array_shift($csv);
             $ID = array_shift($csv);
+            if ( is_numeric( $url ) ) {
+            	continue;
+			}
             $index[$url] = $csv;
             $index[$ID] = $csv;
             oik_unloader_map_id( $url, $ID );

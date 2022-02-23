@@ -13,12 +13,14 @@ class oik_unloader_admin
     private $active_plugins;
     private $loaded;
     private $url;
+    private $id;
 
     function __construct() {
         $this->index = null;
         $this->active_plugins = null;
         $this->loaded = false;
         $this->url = null;
+        $this->id = null;
     }
 
     function oik_unloader_plugins_box() {
@@ -70,12 +72,22 @@ class oik_unloader_admin
      * Adds the URL specified in _addurl
      *
      * @TODO Shouldn't this check if the URL isn't already present?
+	 * OR otherwise invalid
      */
     function add_url() {
         $addurl = bw_array_get( $_REQUEST, '_addurl', null );
         $addurl = trim( $addurl );
+        if ( empty( $addurl)) {
+        	p( "URL should not be blank for Add URL");
+        	return;
+		}
+
         $plugins = $this->get_selected_plugins();
         $this->index[ $addurl ] = $plugins;
+		$this->set_id();
+		$this->index[ $this->id ] = $csv;
+		oik_unloader_map_id( $url, $this->id );
+
         p( "Adding URL:" . $addurl );
         $_REQUEST[ '_url'] = $addurl;
         //$this->set_url();
@@ -92,7 +104,11 @@ class oik_unloader_admin
         $url = $this->get_url();
         p( "Updating URL:" . $url );
         $plugins = $this->get_selected_plugins();
+        $this->set_id();
         $this->index[ $url ] = $plugins;
+		$this->index[ $this->id ] = $plugins;
+		oik_unloader_map_id( $url, $this->id );
+
     }
 
 	/**
@@ -143,8 +159,13 @@ class oik_unloader_admin
         stag( 'table', 'widefat' );
         bw_tablerow( ['URL', 'ID', 'Plugins to deactivate'] );
         foreach ( $index as $key => $plugins ) {
+        	$key = trim( $key );
+            if ( is_numeric( $key ) || empty( $key )) {
+            	continue;
+			}
             $ID = oik_unloader_map_id( $key );
             bw_tablerow(  [$key, $ID, implode("<br />", $plugins )]);
+
         }
         etag( 'table' );
     }
@@ -156,8 +177,10 @@ class oik_unloader_admin
         $this->choose_url_button();
         br();
         $this->plugin_checkbox_list();
+		br();
+		$this->display_ID_field();
         if ( $this->index ) {
-            e(isubmit('update', 'Update plugins to deactivate'), null, 'button-secondary');
+            e(isubmit('update', 'Update plugins to deactivate', null, 'button-secondary'));
         }
         $this->add_url_button();
         //etag( 'table');
@@ -179,6 +202,15 @@ class oik_unloader_admin
         }
     }
 
+    function set_id() {
+    	$id = bw_array_get( $_REQUEST, '_id', null );
+    	$id = trim( $id );
+    	if ( is_numeric( $id ) && !empty( $id )) {
+    		$this->id = $id;
+		}
+
+	}
+
     function get_first_url_in_index() {
         $first = null;
         if ( $this->index ) {
@@ -188,21 +220,29 @@ class oik_unloader_admin
     }
 
     function display_add_url_field() {
+    	br();
         e( "New URL");
         e( itext( '_addurl', 80, ''));
     }
 
+   	function display_id_field() {
+    	br();
+		e( "ID" );
+		e( itext( '_id', 8, $this->get_id_for_url( $this->url ) ));
+	}
+
     function choose_url_button() {
         if ( $this->index ) {
-            e(isubmit('chooseurl', "Choose URL to update"), null, 'button-primary');
-            e(isubmit('deleteurl', "Delete URL"), null, 'button-secondary');
+            e(isubmit('chooseurl', "Choose URL to update", null, 'button-primary'));
+            e(isubmit('deleteurl', "Delete URL", null, 'button-secondary' ));
         }
     }
 
     function add_url_button() {
-        br();
+
         $this->display_add_url_field();
-        e( isubmit( 'addurl', "Add URL" ), null, 'button-secondary');
+
+        e( isubmit( 'addurl', "Add URL" , null, 'button-secondary'));
     }
 
     function get_plugins_for_url() {
@@ -239,10 +279,25 @@ class oik_unloader_admin
 
     function url_select_list( ) {
         if ( $this->index ) {
-            $args = array('#options' => bw_assoc(array_keys($this->index)));
+        	$urls = $this->get_index_urls();
+            $args = array('#options' => $urls );
             BW_::bw_select('_url', "URL", $this->get_url(), $args);
         }
     }
+
+    function get_index_urls() {
+    	$urls = [];
+    	foreach ( $this->index as $key => $csv ) {
+    		$key = trim( $key );
+    		if ( is_numeric( $key ) || empty( $key )) {
+    			continue;
+			}
+    		$urls[ $key ] = $key;
+		}
+    	// $urls = bw_assoc( array_keys( $this->index ) );
+
+    	return $urls;
+	}
 
     function plugin_select_list() {
         $options = $this->get_active_plugins();
@@ -297,14 +352,14 @@ class oik_unloader_admin
 	/**
 	 * Reconstructs the CSV.
 	 *
-	 * Ignores records keyed by the post ID.
+	 * Ignores records keyed by the post ID or with blank URL.
 	 *
 	 * @return string
 	 */
     function reconstruct_csv() {
         $lines = '';
         foreach ( $this->index as $url => $plugins ) {
-        	if ( is_numeric( $url ) ) {
+        	if ( is_numeric( $url ) || empty( $url ) ) {
         		continue;
 			}
             $ID = $this->get_id_for_url( $url );
