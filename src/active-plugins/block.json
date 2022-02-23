@@ -21,9 +21,10 @@
 	  		"lineHeight": true
 		},
 		"spacing": {
-	  		"margin": false,
+	  		"margin": true,
 	  		"padding": true
-		}
+		},
+	  	"multiple": false
   	},
 	"textdomain": "oik-unloader",
 	"editorScript": "file:../../build/index.js",
