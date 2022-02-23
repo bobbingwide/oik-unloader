@@ -164,7 +164,7 @@ class oik_loader_admin
         $this->get_plugins();
         $this->plugin_select_list();
         if ( $this->index ) {
-            e(isubmit('update', 'Update plugins to activate'), null, 'button-secondary');
+            e(isubmit('update', 'Update plugins to activate', null, 'button-secondary' ));
         }
         $this->add_url_button();
         //etag( 'table');
