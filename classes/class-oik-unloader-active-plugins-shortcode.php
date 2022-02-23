@@ -239,9 +239,10 @@ class OIK_Unloader_Active_Plugins_Shortcode {
 		oik_require_lib("oik-honeypot");
 		do_action("oik_add_honeypot");
 
-		e(isubmit('_oik_unloader_mu', "Update activated plugins"));
+		e(isubmit('_oik_unloader_mu', "Update activated plugins", null, 'button button-primary'));
 		$this->display_hidden_url_field();
-		e(ihidden('ID', bw_current_post_id()));
+		$this->display_hidden_ID_field();
+
 		e(wp_nonce_field("_oik_unloader_mu", "_oik_nonce", false, false));
 		$this->display_timings();
 
@@ -260,6 +261,20 @@ class OIK_Unloader_Active_Plugins_Shortcode {
 	function display_hidden_url_field() {
 		e( ihidden( 'url', $_SERVER['REQUEST_URI'] ));
     }
+
+	/**
+	 * Displays the hidden ID field.
+	 *
+	 * Only sets the ID when it's a single post being displayed.
+	 *
+	 */
+    function display_hidden_ID_field() {
+		if ( is_single() ) {
+			e( ihidden('ID', bw_current_post_id()));
+		} else {
+			e( ihidden( 'ID', '' ));
+		}
+	}
 
     function display_plugins_row( $key, $values, $enabled, $loaded_available ) {
         $row = [];
