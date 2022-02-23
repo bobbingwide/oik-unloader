@@ -47,7 +47,7 @@ class oik_loader_admin
      * This doesn't load the automatically managed files for oik-loader.
      */
     function load_index() {
-        $this->index = oik_loader_mu_build_index('oik-plugins-extra');
+        $this->index = oik_loader_mu_build_index('oik-loader-extras');
     }
 
     function maybe_update_plugins() {
@@ -321,6 +321,10 @@ class oik_loader_admin
         }
         foreach ($this->index as $url => $plugins) {
             //if ( null === $ID) {
+			$url = trim( $url );
+			if ( is_numeric( $url ) || empty( $url )) {
+				continue;
+			}
             $ID = $this->get_id_for_url($url);
             ///}
             $line = "$url,$ID,";
