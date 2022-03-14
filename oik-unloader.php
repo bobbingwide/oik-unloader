@@ -164,6 +164,9 @@ function oik_unloader_active_plugins_dynamic_block( $attributes ) {
 	if ( isset( $attributes['textAlign'] ) ) {
 		$classes .= 'has-text-align-' . $attributes['textAlign'];
 	}
+	if ( isset( $attributes['align'] ) ) {
+		$classes .= ' has-text-align-' . $attributes['align'];
+	}
 	$wrapper_attributes = get_block_wrapper_attributes( array( 'class' => $classes ) );
 	//	$localised_time = date_i18n( get_option( 'time_format'));
 	/* translators: %s: time in user's preferred format */
