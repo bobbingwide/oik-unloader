@@ -31,6 +31,7 @@ class OIK_Unloader_Active_Plugins_Shortcode {
 	 */
 	function is_oik_loader_mu_loaded() 	{
 		$loaded = function_exists('oik_loader_mu_loaded');
+		$loaded &= function_exists( 'oik_loader_map_id');
 		return $loaded;
 	}
 
@@ -43,7 +44,7 @@ class OIK_Unloader_Active_Plugins_Shortcode {
 	 * @param $tag
 	 * @return string
 	 */
-	function run($atts, $content, $tag) 	{
+	function run($atts, $content, $tag) {
 		$html = "active_plugins run";
 		add_filter('option_active_plugins', [$this, 'option_active_plugins'], -1000, 2);
 		add_filter('site_option_active_sitewide_plugins', [$this, 'site_option_active_sitewide_plugins'], -1000, 3);
@@ -239,7 +240,7 @@ class OIK_Unloader_Active_Plugins_Shortcode {
 		oik_require_lib("oik-honeypot");
 		do_action("oik_add_honeypot");
 
-		e(isubmit('_oik_unloader_mu', "Update activated plugins", null, 'button button-primary'));
+		e(isubmit('_oik_unloader_mu', "Update activated plugins", null, 'button-primary wp-block-button__link'));
 		$this->display_hidden_url_field();
 		$this->display_hidden_ID_field();
 
