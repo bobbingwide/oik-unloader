@@ -3,8 +3,8 @@ Contributors: bobbingwide, vsgloik
 Donate link: https://www.oik-plugins.com/oik/oik-donate/
 Tags: oik, plugin, unloader
 Requires at least: 5.8.1
-Tested up to: 5.9
-Stable tag: 0.1.1
+Tested up to: 5.9.2
+Stable tag: 0.2.0
 
 WordPress Must Use plugin to unload unnecessary plugins on demand.
 
@@ -75,6 +75,9 @@ The REST API and AJAX requests should also produce the expected results.
 3. oik-loader admin page - oik-loader-mu activated
 
 == Upgrade Notice ==
+= 0.2.0 = 
+Upgrade for the active-plugins block to load/unload plugins from the front-end.
+
 = 0.1.1 =
 Upgrade to avoid problems that may arise at shutdown.
 
@@ -88,6 +91,16 @@ Upgrade plugin selection using checkboxes.
 Prototype version developed as part of a performance improvement project.
 
 == Changelog ==
+= 0.2.0 = 
+* Added: oik-unloader/active-plugins block #7
+* Added: [active_plugins] shortcode #7
+* Changed: Improve oik-unloader admin form #1
+* Changed: Cater for when oik-loader is not available #7
+* Changed: Prevent NextGEN Gallery from activating itself #6
+* Tested: With WordPress 5.9.2
+* Tested: With PHP 8.0
+* Tested: With/without oik-loader v1.4.0
+
 = 0.1.1 =
 * Fixed: Deactivates unloading logic at shutdown. Fixes #6 
 * Tested: With WordPress 5.9
