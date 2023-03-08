@@ -59,11 +59,11 @@ class OIK_Unloader_Active_Plugins_Shortcode {
 		$this->get_plugins();
 		$loaded_available = $this->is_oik_loader_mu_loaded();
 		$is_front_end = $this->is_front_end();
-
-		if ( $is_front_end && current_user_can('activate_plugins') ) {
+		$checkboxes_enabled = $is_front_end && current_user_can('activate_plugins');
+		if ( $checkboxes_enabled ) {
 			$this->display_plugins_form( $loaded_available);
 		} else {
-			$this->display_plugins_table( $is_front_end, $loaded_available);
+			$this->display_plugins_table( false, $loaded_available);
 			if ( !$is_front_end ) {
 				if ($loaded_available) {
 					p("Save the post then view it to choose the plugins to unload or load.");
