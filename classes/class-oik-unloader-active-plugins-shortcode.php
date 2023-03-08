@@ -256,6 +256,7 @@ class OIK_Unloader_Active_Plugins_Shortcode {
 	}
 
 	function form_tag() {
+		oik_require_lib('bobbforms');
 		bw_form();
 	}
 
