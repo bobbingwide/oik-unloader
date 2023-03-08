@@ -288,11 +288,13 @@ function oik_unloader_mu_query_plugins_for_query($index)
     if ($querystring) {
         parse_str($querystring, $parms);
         //print_r( $parms );
-        $key = key($parms);
-        $value = current($parms);
-        $query_index = "$key=$value";
-        //echo $query_index;
-        $plugins = oik_unloader_mu_query_plugins($index, $query_index);
+		if ( is_scalar( $parms )) {
+			$key = key($parms);
+			$value = current($parms);
+			$query_index = "$key=$value";
+			//echo $query_index;
+			$plugins = oik_unloader_mu_query_plugins($index, $query_index);
+		}
     }
     return $plugins;
 }
