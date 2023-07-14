@@ -3,8 +3,8 @@ Contributors: bobbingwide, vsgloik
 Donate link: https://www.oik-plugins.com/oik/oik-donate/
 Tags: oik, plugin, unloader
 Requires at least: 5.8.1
-Tested up to: 5.9.2
-Stable tag: 0.2.0
+Tested up to: 6.2.2
+Stable tag: 0.3.0
 
 WordPress Must Use plugin to unload unnecessary plugins on demand.
 
@@ -75,6 +75,9 @@ The REST API and AJAX requests should also produce the expected results.
 3. oik-loader admin page - oik-loader-mu activated
 
 == Upgrade Notice ==
+= 0.3.0 = 
+Upgrade for an improved active-plugins block and some bug fixes.
+
 = 0.2.0 = 
 Upgrade for the active-plugins block to load/unload plugins from the front-end.
 
@@ -91,6 +94,15 @@ Upgrade plugin selection using checkboxes.
 Prototype version developed as part of a performance improvement project.
 
 == Changelog ==
+= 0.3.0 =
+* Fixed: Cater for post query arg array #13
+* Fixed: Require bobbforms before calling bw_form() #12
+* Changed: Reconcile shared library update
+* Fixed: Avoid warning when query parms are an array #11
+* Changed: Only display checkboxes for authorized users #7
+* Tested: With WordPress 6.2.2 
+* Tested: With PHP 8.0
+
 = 0.2.0 = 
 * Added: oik-unloader/active-plugins block #7
 * Added: [active_plugins] shortcode #7
