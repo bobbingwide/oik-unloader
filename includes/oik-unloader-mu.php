@@ -4,12 +4,12 @@
 Plugin Name: oik-unloader-MU
 Plugin URI: https://www.oik-plugins.com/oik-plugins/oik-unloader-mu
 Description: WordPress Must Use plugin to unload unnecessary plugins on demand
-Version: 0.2.1
+Version: 0.3.2
 Author: bobbingwide
 Author URI: https://www.oik-plugins.com/author/bobbingwide
 License: GPL2
 
-    Copyright 2021, 2023 Bobbing Wide (email : herb@bobbingwide.com )
+    Copyright 2021, 2023, 2024 Bobbing Wide (email : herb@bobbingwide.com )
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License version 2,
@@ -135,7 +135,7 @@ function oik_unloader_build_index($lines)
 {
     $index = [];
     foreach ($lines as $line) {
-        $csv = str_getcsv($line);
+        $csv = str_getcsv($line, ",", '"', "");
         if (count($csv) >= 3) {
             //echo $csv[0];
             $url = array_shift($csv);
