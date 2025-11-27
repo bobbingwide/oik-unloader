@@ -281,14 +281,49 @@ class OIK_Unloader_Active_Plugins_Shortcode {
     function display_plugins_row( $key, $values, $enabled, $loaded_available ) {
         $row = [];
         $row[] = $this->plugin_name( $key );
-        $row[] = icheckbox( "unloaded[$key]",$values['unloaded'], !$enabled );
+        $row[] = $this->icheckbox( "unloaded[$key]",$values['unloaded'], !$enabled );
         if ( $loaded_available ) {
-            $row[] = icheckbox("loaded[$key]", $values['loaded'], !$enabled);
+            $row[] = $this->icheckbox("loaded[$key]", $values['loaded'], !$enabled);
         }
         bw_tablerow( $row );
     }
 
-    function plugin_name( $key ) {
+	/**
+	 * Create a checkbox input field
+	 *
+	 * Note: In order to obtain a value when the checkbox is unticked
+	 * we add a hidden field with a value of off
+	 * See http://iamcam.wordpress.com/2008/01/15/unchecked-checkbox-values/
+	 * When the value is set then the checkbox is checked
+	 *
+	 * @param string $name the name for the checkbox input field
+	 * @param string $value the value of the checkbox - default NOT checked
+	 * @param bool whether or not the checkbox should be disabled. default: false
+	 */
+	function icheckbox( $name, $value=NULL, $disabled=false ) {
+		$it = ihidden( $name, "0" );
+		$it .= "<input type=\"checkbox\" ";
+		$it.= "name=\"";
+		$it.= $name;
+		$it.= "\" id=\"";
+		$it.= $name;
+		$it.= '"';
+		if ( $value && $value != "0" ) {
+			$it.= " checked=\"checked\"";
+		}
+		if ( $disabled ) {
+			$it .= kv( "disabled", "disabled" );
+		}
+		/**
+		 * Attempt to please the WAVE a11y tool.
+		 */
+		$it .= kv("aria-label", $name);
+		$it.= "/>";
+		return $it;
+	}
+
+
+	function plugin_name( $key ) {
         $name = $this->get_plugin_name( $key );
         $name .= ' ';
         $name .= $this->is_network_activated( $key );
