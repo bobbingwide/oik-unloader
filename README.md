@@ -4,8 +4,8 @@
 * Donate link: https://www.oik-plugins.com/oik/oik-donate/
 * Tags: oik, plugin, unloader
 * Requires at least: 5.8.1
-* Tested up to: 6.4-RC2
-* Stable tag: 0.3.1
+* Tested up to: 6.9
+* Stable tag: 0.4.0
 
 WordPress Must Use plugin to unload unnecessary plugins on demand.
 
@@ -76,70 +76,22 @@ The REST API and AJAX requests should also produce the expected results.
 3. oik-loader admin page - oik-loader-mu activated
 
 ## Upgrade Notice 
-# 0.3.1 
-Upgrade for support for PHP 8.1 and PHP 8.2
+# 0.4.0 
+Update for accessibility improvements to the active-plugins block
 
-# 0.3.0 
-Upgrade for an improved active-plugins block and some bug fixes.
-
-# 0.2.0 
-Upgrade for the active-plugins block to load/unload plugins from the front-end.
-
-# 0.1.1 
-Upgrade to avoid problems that may arise at shutdown.
-
-# 0.1.0 
-Upgrade for WordPress Multi Site support.
-
-# 0.0.1 
-Upgrade plugin selection using checkboxes.
-
-# 0.0.0 
-Prototype version developed as part of a performance improvement project.
+# 0.3.2 
+Update for PHP 8.4 - tested manually
 
 ## Changelog 
-# 0.3.1 
-* Changed: Support PHP 8.1 and PHP 8.2 #14
-* Tested: With WordPress 6.4-RC2
-* Tested: With PHP 8.1 and PHP 8.2
+# 0.4.0 
+* Changed: A11y - try adding aria-label attr to local implementation of icheckbox() #15
+* Fixed: Corect load_dir_files() method #14
+* Tested: With WordPress 6.9
+* Tested: With PHP 8.3
 * Tested: With PHPUnit 9.6
 
-# 0.3.0 
-* Fixed: Cater for post query arg array #13
-* Fixed: Require bobbforms before calling bw_form() #12
-* Changed: Reconcile shared library update
-* Fixed: Avoid warning when query parms are an array #11
-* Changed: Only display checkboxes for authorized users #7
-* Tested: With WordPress 6.2.2
-* Tested: With PHP 8.0
-
-# 0.2.0 
-* Added: oik-unloader/active-plugins block #7
-* Added: [active_plugins] shortcode #7
-* Changed: Improve oik-unloader admin form #1
-* Changed: Cater for when oik-loader is not available #7
-* Changed: Prevent NextGEN Gallery from activating itself #6
-* Tested: With WordPress 5.9.2
-* Tested: With PHP 8.0
-* Tested: With/without oik-loader v1.4.0
-
-# 0.1.1 
-* Fixed: Deactivates unloading logic at shutdown. Fixes #6
-* Tested: With WordPress 5.9
-
-# 0.1.0 
-* Changed: Support deactivation of Network Activated plugins in WordPress Multi Site #4
-
-# 0.0.1 
-* Changed: Plugin selection list implemented using checkboxes
-* Changed: Create mu-plugins folder if required
-* Changed: Respect WPMU_PLUGIN_DIR value locating mu-plugins folder
-
-# 0.0.0 
-* Added: Brand new plugin. includes/oik-unloader-mu.php will only be installed in mu-plugins if the folder exists.
-* Tested: With WordPress 5.8.1
-* Tested: With Gutenberg 11.7.0
-* Tested: With PHP 8.0
+# 0.3.2 
+* Changed: Support PHP 8.4 #14
 
 ## Further reading 
 See also [oik-loader](https://github.com/bobbingwide/oik-loader) which adds plugins to the list of plugins to activate.
