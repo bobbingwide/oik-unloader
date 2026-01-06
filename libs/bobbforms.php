@@ -1,6 +1,6 @@
-<?php // (C) Copyright Bobbing Wide 2009-2023
+<?php // (C) Copyright Bobbing Wide 2009-2026
 if ( !defined( "BOBBFORMS_INCLUDED" ) ) {
-define( "BOBBFORMS_INCLUDED", "3.4.2" );
+define( "BOBBFORMS_INCLUDED", "3.4.5" );
 
 /**
  * Library: bobbforms
@@ -123,6 +123,7 @@ function iarea( $name, $len, $value, $rows=10, $extras=null ) {
 	$it .= kv( "rows", $rows);
 	$it .= kv( "cols", $len );
 	$it .= kv( "name", $name );
+	$it .= kv( "id", $name );
 	$it .= $extras;
 	$it .= ">";
 	$it .= $value;
@@ -516,9 +517,9 @@ function iselect( $name, $value, $args ) {
 	//bw_trace2();
 	$multiple = bw_array_get( $args, "#multiple", false );
 	if ( $multiple ) {
-		$iselect = "<select name=\"{$name}[]\" multiple size=\"$multiple\">" ;
+		$iselect = "<select name=\"{$name}[]\" id=\"{$name}\" multiple size=\"$multiple\">" ;
 	} else {
-		$iselect = "<select name=\"$name\">" ;
+		$iselect = "<select name=\"$name\" id=\"{$name}\">" ;
 	}
 	$options = bw_as_array( $args['#options'] );
 	$optional = bw_array_get( $args, "#optional", false );
@@ -584,7 +585,11 @@ function icheckbox( $name, $value=NULL, $disabled=false ) {
 	} 
 	if ( $disabled ) {
 		$it .= kv( "disabled", "disabled" );
-	}   
+	}
+	/**
+	 * Attempt to please the WAVE a11y tool.
+	 */
+	$it .= kv("aria-label", $name);
 	$it.= "/>"; 
 	return $it;
 }
@@ -728,8 +733,9 @@ function bw_textarea_cb_arr( $name, $text, $array, $index, $len, $rows=5 ) {
 if ( !function_exists( "bw_form_start" ) ) { 
 	function bw_form_start( $option, $settings, $action="options.php" ) {
 		bw_form( $action );
-		$options = get_option( $option );   
-		stag( 'table', "form-table" );
+		$options = get_option( $option );
+		bw_table_or_grid_start( null, 'form-table');
+		//stag( 'table', "form-table" );
 		bw_flush();
 		settings_fields( $settings );
 		return( $options );
@@ -809,10 +815,10 @@ if ( !function_exists( "bw_verify_nonce" ) ) {
  * @since v3.4.0
  * @param null $table
  */
-function bw_table_or_grid_start( $table=null ) {
-    bw_is_table( $table );
+function bw_table_or_grid_start( $table=null, $class=null ) {
+    $table = bw_is_table( $table );
     if ( $table ) {
-        stag( 'table');
+        stag( 'table', null);
     } else {
         sdiv( 'bw_grid');
     }
